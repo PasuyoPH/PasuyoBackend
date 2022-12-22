@@ -1,0 +1,35 @@
+{
+  "http": {
+    "port": 8080,
+    "cleanedJsonResponses": true,
+
+    "base": "/api"
+  },
+
+  "db": {
+    "host": "127.0.0.1",
+    "port": 27017,
+
+    "user": "admin",
+    "pass": "gameguydk",
+
+    "dbName": "pasuyo",
+    "authSource": "admin",
+
+    "uri": "mongodb+srv://admin:gameguydk@cluster0.ll6n8mv.mongodb.net/pasuyo"
+  },
+
+  "maxMealsPerOrder": 10,
+
+  "adminKeys": [
+    "key1"
+  ],
+
+  "captcha": {
+    "sitekey": "CAPTCHA_SITE_KEY",
+    "secret": "CAPTCHA_SECRET_KEY"
+  },
+
+  "cypher_iv_key": "fb1f4b0a7daaada6cae678df32fad0f0",
+  "jwt_secret": "jwt_secret"
+}
