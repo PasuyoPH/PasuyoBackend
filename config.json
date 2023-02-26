@@ -8,15 +8,15 @@
 
   "db": {
     "host": "127.0.0.1",
-    "port": 27017,
+    "port": 5432,
 
-    "user": "admin",
+    "user": "postgres",
     "pass": "gameguydk",
 
     "dbName": "pasuyo",
     "authSource": "admin",
 
-    "uri": "mongodb+srv://admin:gameguydk@cluster0.ll6n8mv.mongodb.net/pasuyo"
+    "uri": ""
   },
 
   "maxMealsPerOrder": 10,

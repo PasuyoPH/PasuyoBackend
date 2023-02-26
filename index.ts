@@ -7,28 +7,29 @@ import cors from 'cors'
 // Routes
 import DefaultRoute from './src/routes/Default'
 
-// Test routes
-import TestHelloWorld from './src/routes/test/HelloWorld'
-import TestUserCreate from './src/routes/test/TestUserCreation'
+// Auth related
+import RegisterCustomer from './src/routes/auth/RegisterCustomer'
+import AuthCustomer from './src/routes/auth/AuthCustomer'
+import AuthTest from './src/routes/auth/AuthTest'
+import VerifyToken from './src/routes/auth/VerifyToken'
 
-import TestUserLogin from './src/routes/test/TestUserLogin'
+// User related
+import GetUser from './src/routes/user/GetUser'
 
-// Meals
-import GetMeal from './src/routes/meals/GetMeal'
+// Rider related
+import AuthRider from './src/routes/rider/AuthRider'
+import RegisterRider from './src/routes/rider/RegisterRider'
 
-// Companies
-import GetCompany from './src/routes/companies/GetCompany'
-import GetCompanies from './src/routes/companies/GetCompanies'
+// Rate related
+import RateRider from './src/routes/rate/RateRider'
 
-// Orders
-import CreateOrder from './src/routes/orders/CreateOrder'
-import ModifyOrderStatus from './src/routes/orders/ModifyOrderStatus'
-import ClaimOrder from './src/routes/orders/ClaimOrder'
-import RequestToken from './src/routes/auth/RequestToken'
-import GetOrders from './src/routes/orders/GetOrders'
+// jobs related
+import CreateJob from './src/routes/job/CreateJob'
+import GetCustomerJobs from './src/routes/job/GetCustomerJobs'
 
-// Deliveries
-import CreateDelivery from './src/routes/deliveries/CreateDelivery'
+// v2
+import AuthCreate from './src/routes/v2/auth/Create'
+import GetJobs from './src/routes/v2/rider/Jobs'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -44,25 +45,29 @@ const main = async () => {
 
   await http.register(DefaultRoute)
 
-  await http.register(TestHelloWorld)
-  await http.register(TestUserCreate)
-  await http.register(TestUserLogin)
+  // auth related
+  await http.register(RegisterCustomer)
+  await http.register(AuthCustomer)
+  await http.register(AuthTest)
+  await http.register(VerifyToken)
 
-  await http.register(GetCompany)
-  await http.register(GetCompanies)
+  // user related
+  await http.register(GetUser)
+  
+  // riders related
+  await http.register(AuthRider)
+  await http.register(RegisterRider)
 
-  await http.register(GetMeal)
+  // rates related
+  await http.register(RateRider)
 
-  await http.register(CreateOrder)
-  await http.register(ModifyOrderStatus)
-  await http.register(ClaimOrder)
-  await http.register(GetOrders)
+  // jobs related
+  await http.register(CreateJob)
+  await http.register(GetCustomerJobs)
 
-  // user
-  await http.register(RequestToken)
-
-  // delivery
-  await http.register(CreateDelivery)
+  // v2
+  await http.register(AuthCreate)
+  await http.register(GetJobs)
 
   try {
     await http.ready()

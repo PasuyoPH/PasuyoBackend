@@ -3,7 +3,9 @@ import {
   IRoute,
   HttpRes,
   PathReturnable,
-  IPathReturnObject
+  IPathReturnObject,
+  ICustomError,
+  IErrorCodes
 } from '../types/Http'
 import HttpServer from './HttpServer'
 
@@ -13,7 +15,7 @@ import { promisify } from 'util'
 import axios from 'axios'
 import { URLSearchParams } from 'url'
 
-import { IDbUser } from '../types/db/Users'
+import { Rider, User } from '../types/db/User'
 
 class Path implements IRoute {
   public path   = '/'
@@ -31,9 +33,9 @@ class Path implements IRoute {
   public requireUserToken = false
   public token: string = null
 
-  public user: IDbUser = null
+  public user: Rider | User = null
 
-  private clean(data: IPathReturnObject) {
+  private clean(data: IPathReturnObject | ICustomError) {
     return this.server.config.http.cleanedJsonResponses ?
       JSON.stringify(data, null, 2) :
       JSON.stringify(data)
@@ -105,17 +107,17 @@ class Path implements IRoute {
 
         if (this.requireUserToken) {
           const token = req.headers.authorization as string ?? '',
-            user = await this.server.utils.getUserByToken(token),
+            user = await this.server.utils.getUserFromToken(token) as any,
             isValid = !!user
 
           if (!isValid) { // token failed
             const result = {
               error: true,
               message: 'User token provided is either invalid or expired.',
-              code: 400,
+              code: IErrorCodes.AUTH_INVALID_TKN,
               userTokenInvalid: true
             }
-            res.statusCode = result.code
+            res.statusCode = 400
 
             return res.send(
               this.clean(result)
@@ -234,22 +236,56 @@ It's possible that No onRequest function was found for this route.`
               res.end()
               break
           }
-        } catch(err) {
-          const data = {
-            code: 500,
-            message: err.isAxiosError ?
-              `Internal API Error, please contact admins about this.` :
-              err.message
-          }
+        } catch(err) {       
+          res.statusCode = 400     
+          if (err.code === '42703' || err.code === 42703) // knex related or pgsql
+            return res.send(
+              this.clean(
+                {
+                  error: true,
+                  code: IErrorCodes.INVALID_FIELDS,
+    
+                  message: 'Invalid fields provided.'
+                }
+              )
+            )
+        
+          const defaultErrorMessage = 'Internal API Error, please contact admins about this.',
+          result = await this.onError(err) as ICustomError
 
-          res.statusCode = 500
-          res.send(
-            this.clean(data)
-          )
+          if (result) {
+            const data = {
+              error: true,
+              code: result ? result.code : 500,
+              message: result ? result.msg : (
+                err.isAxiosError ?
+                  defaultErrorMessage :
+                  err.message
+              )
+            }
+
+            res.send(
+              this.clean(data)
+            )
+          } else {
+            const data = {
+              error: true,
+              code: err.code ?? 500,
+              message: err.isAxiosError ?
+                defaultErrorMessage :
+                err.message
+            }
+  
+            res.send(
+              this.clean(data)
+            )
+          }
         }
       }
     )
   }
+
+  public async onError(code: any): Promise<ICustomError | void>  {}
 
   public async onRequest(_req: HttpReq, _res: HttpRes): Promise<PathReturnable | void> {}
 }

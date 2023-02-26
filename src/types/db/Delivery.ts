@@ -1,25 +1,18 @@
-import { OrderStatus } from './Order'
+interface IDeliveryInfo {
+  fullName: string
+  location: string
 
-// structure for delivery system
-interface IDbDeliveryInfo {
-  name: string
-  contact: string
-
-  address: string
   landmark?: string
 }
 
-interface IDbDelivery {
-  from: IDbDeliveryInfo
-  to: IDbDeliveryInfo
+interface IDelivery {
+  from: IDeliveryInfo
+  to: IDeliveryInfo
 
   item: string
-  uid: string
-
-  status: OrderStatus
 }
 
 export {
-  IDbDeliveryInfo,
-  IDbDelivery
+  IDelivery,
+  IDeliveryInfo
 }

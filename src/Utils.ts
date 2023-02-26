@@ -1,7 +1,7 @@
 import HttpServer from './base/HttpServer'
 import jsonwebtoken from 'jsonwebtoken'
 
-import { IEncryptedToken } from './types/Http'
+import { IEncryptedToken, IErrorCodes } from './types/Http'
 import {
   createCipheriv,
   createDecipheriv,
@@ -9,15 +9,32 @@ import {
   randomBytes
 } from 'crypto'
 
-import {
-  IMealAsOrder,
-  OrderStatus
-} from './types/db/Order'
-import { UserRole } from './types/db/Users'
-import { IDbDeliveryInfo } from './types/db/Delivery'
+import { IAuthUser, INewUser } from './types/data'
+import HttpError from './base/HttpError'
+
+import { ITokenData } from './types/Token'
+import IRateRider from './types/data/RateRider'
+
+import { IRider, IRiderStates } from './types/db'
+import Tables from './types/Tables'
+
+import { IJob, IJobTypes } from './types/db/Job'
+import { IDelivery } from './types/db/Delivery'
+
+import Bytes from './base/Bytes'
+import IJobOptions from './types/data/JobOptions'
+
+import UserUtils from './utils/User'
+import RiderUtils from './utils/Rider'
 
 class Utils {
-  constructor(public server: HttpServer) {}
+  public user: UserUtils
+  public rider: RiderUtils
+
+  constructor(public server: HttpServer) {
+    this.user  = new UserUtils(this.server)
+    this.rider = new RiderUtils(this.server)
+  }
 
   public hash(str: string): Promise<string> {
     return new Promise(
@@ -25,6 +42,15 @@ class Utils {
         createHash('sha256')
           .update(str)
           .digest('hex') ?? ''
+      )
+    )
+  }
+
+  public genUID(len: number = 16): Promise<string> {
+    return new Promise(
+      (resolve) => resolve(
+        randomBytes(len)
+          .toString('hex')
       )
     )
   }
@@ -42,33 +68,6 @@ class Utils {
       )
 
     return res.join('')
-  }
-
-  // admin only
-  public async createUserTest(returnJwt: boolean = true) {
-    const email = `${this.genRand()}@example.com`,
-      pin = 1000 + Math.floor(
-        Math.random() * 1000
-      ),
-      uid = randomBytes(16).toString('hex'),
-      data = { email, pin, uid, role: 0 },
-      user = new this.server.models.Users(data)
-
-    await user.save()
-
-    if (returnJwt)
-      return await this.encryptJWT({ uid }, 86400)
-    else return user
-  }
-
-  // admin only
-  public async getUserByToken(token: string) {
-    // decrypt jwt token
-    const data = await this.decryptJWT(token)
-    if (!data) return null
-       
-    return await this.server.models.Users.findOne(data)
-      .select('-_id')
   }
 
   public encryptJWT(data: any, expiresIn: number): Promise<string> {
@@ -139,142 +138,271 @@ class Utils {
     )
   }
 
-  public async getMeal(uid: string) {
-    const company = await this.server.models.Companies.findOne(
-      { 'meals.uid': uid },
-      { 'meals.$': 1 }
-    )
-    
-    return company?.meals[0] || null
-  }
-
-  public async getCompany(uid: string) {
-    return await this.server.models.Companies.findOne({ uid })
-      .select('-_id')
-  }
-
-  public async getCompanies() {
-    return await this.server.models.Companies.find({})
-      .select('-_id')
-  }
-
-  public async createOrder(
-    user: string,
-    meals: IMealAsOrder[],
-    address: string
-  ) {
-    const orderId = randomBytes(8)
-      .toString('hex'),
-      order = {
-        uid: orderId,
-        meals, 
-
-        address,
-        status: OrderStatus.PROCESSED
-      }
-    
-    await this.server.models.Users.updateOne(
-      { uid: user },
-      {
-        $push: { orders: order }
-      }
-    )
-    
-    return order
-  }
-
-  public async modifyOrderStatus(user: string, orderId: string, status: OrderStatus) {
-    return await this.server.models.Users.updateOne(
-      {
-        uid: user,
-        'orders.uid': orderId
-      },
-      {
-        $set: {
-          'orders.$.status': status
-        }
-      }
-    )
-  }
-
-  public async modifyDeliveryStatus(user: string, orderId: string, status: OrderStatus) {
-    return await this.server.models.Users.updateOne(
-      {
-        uid: user,
-        'deliveries.uid': orderId
-      },
-      {
-        $set: {
-          'deliveries.$.status': status
-        }
-      }
-    )
-  }
-
-  public async claimOrder(driver: string, orderId: string) {
-    const data = await this.server.models.Users.findOne(
-      { 'orders.uid': orderId },
-      { 'orders.$': 1 }
-    )
-
-    return data?.orders[0] ?? null
-  }
-
-  public async requestToken(email: string, pin: number, isRider: boolean) {
-    const filter = { email, pin, role: UserRole.CUSTOMER }
-    if (isRider)
-      filter.role = UserRole.DRIVER
-     
-    const user = await this.server.models.Users.findOne(filter)
-    if (user)
-      return  await this.encryptJWT(
-        { uid: user.uid },
-        86400
+  public async createUser(data: INewUser, isRider: boolean = false) {
+    if (!data.email?.match(/.+@.+\..+/g))
+      throw new HttpError(
+        IErrorCodes.AUTH_INVALID_EMAIL,
+        'Please provide a proper email.'
       )
-    else return null
-  }
 
-  public async getOrders() {
-    const orders = await this.server.models.Users.find(
-      {},
-      { orders: 1, _id: 0 } 
+    if (
+      !data.pin ||
+      data.pin.length !== 4 ||
+      !data.pin.match(/[0-9]/g)
     )
+      throw new HttpError(
+        IErrorCodes.AUTH_INVALID_PIN,
+        'Please provide a proper pin code.'
+      )
 
-    return orders.reduce(
-      (acc, curr) => [
-        ...acc,
-        ...curr.orders.filter(
-          (order) => order.status < OrderStatus.DELIVERED
+    try {
+      const uid = await this.genUID(),
+        user = isRider ? {
+          uid,
+          state: IRiderStates.RIDER_UNAVAILABLE,
+
+          verified: false,
+          ...data
+        } : { uid, ...data },
+        token = await this.encryptJWT(
+          {
+            uid,
+            pin: data.pin,
+
+            role: isRider ? 'RIDER' : 'CUSTOMER'
+          },
+          86400
         )
-      ],
-      []
+
+      await this.server.db.table(isRider ? Tables.Riders : Tables.Customers)
+        .insert(user)
+
+      return token
+    } catch(err) {
+      switch (Number(err.code)) {
+        case 23505: {
+          throw new HttpError(
+            IErrorCodes.AUTH_DUPL,
+            'This email or phone number provided is already in use. Please try a different one.'
+          )
+        }
+      }
+    }
+  }
+
+  public async getUserToken(
+    data: IAuthUser,
+    rider: boolean = false
+  ) {
+    const { phone, pin } = data
+    /*if (!email?.match(/.+@.+\..+/g))
+      throw new HttpError(
+        IErrorCodes.AUTH_INVALID_EMAIL,
+        'Please provide a proper email.'
+      )*/
+
+    const user = await this.server.db.table(rider ? Tables.Riders : Tables.Customers)
+      .select('*')
+      .where(
+        { phone: phone.startsWith('0') ? phone : '0' + phone }
+      )
+      .first()
+
+    if (!user)
+      throw new HttpError(
+        IErrorCodes.AUTH_FAILED,
+        'No user found with this phone.'
+      )
+
+    if (user.pin !== pin)
+      throw new HttpError(
+        IErrorCodes.AUTH_INVALID_PIN,
+        'Incorrect pin was provided. Please try again.'
+      )
+
+    return await this.encryptJWT(
+      {
+        uid: user.uid,
+        pin,
+
+        role: rider ? 'RIDER' : 'CUSTOMER'
+      },
+      86400
     )
   }
 
-  public async createDelivery(
-    user: string,
-    from: IDbDeliveryInfo,
-    to: IDbDeliveryInfo,
-    item: string 
+  public async getUserFromToken(token: string) {
+    const data = await this.decryptJWT<ITokenData>(token)
+    if (!data) return
+
+    const table = data.role === 'CUSTOMER' ? (Tables.Customers) : (data.role === 'ADMIN' ? Tables.Customers : Tables.Riders),
+      { uid, pin } = data
+    
+    return await this.server.db.table(table)
+      .select('*')
+      .where({ uid, pin })
+      .first()
+  }
+
+  public async getRiderByID(uid: string): Promise<IRider> {
+    return await this.server.db.table(Tables.Riders)
+      .select('*')
+      .where({ uid })
+      .first()
+  }
+
+  public async rateRider(
+    by: string,
+    riderID: string,
+    data: IRateRider
   ) {
-    const deliveryId = randomBytes(8)
-      .toString('hex'),
-      delivery = {
-        from,
-        to,
+    // try to verify rider
+    const rider = await this.getRiderByID(riderID)
+    if (!rider)
+      throw new HttpError(
+        IErrorCodes.RATING_RIDER_CUSTOMER_ONLY,
+        'This rider does not exist. Please make sure you rate an existing rider.'
+      )
 
-        item,
-        uid: deliveryId,
+    if (data.rating < 1 || data.rating > 5)
+      throw new HttpError(
+        IErrorCodes.RATING_RATE_INVALID,
+        'Rating invalid, please provide from 1-5.'
+      )
 
-        status: OrderStatus.PROCESSED
+    if (data.comment) {
+      if (data.comment.length < 3)
+        throw new HttpError(
+          IErrorCodes.RATING_COMMENT_TOO_SHORT,
+          'Comment provided was too short, please try a little longer.'
+        )
+
+      if (data.comment.length > 300)
+        throw new HttpError(
+          IErrorCodes.RATING_COMMENT_TOO_LONG,
+          'Comment provided was too long, please try a little shorter.'
+        )
+    }
+
+    const uid = await this.genUID(),
+      insertData = {
+        uid,
+        rider: rider.uid,
+
+        ...data,
+        by
+      }
+      
+    await this.server.db.insert(insertData)
+      .into(Tables.Rates)
+
+    return insertData
+  }
+
+  public async takeJob(jobID: string, riderID: string) {
+
+  }
+
+  public async getUserJobs(uid: string): Promise<IJob[]> {
+    return await this.server.db.select('*')
+      .from(Tables.Jobs)
+      .where(
+        { creator: uid }
+      )
+  }
+
+  public verifyDeliveryProps(data: IDelivery) {
+    const props = [
+      'fullName',
+      'location'
+    ]
+
+    if (!data.item || data.item.length < 3)
+      throw new HttpError(
+        IErrorCodes.DELIVERY_INVALID_ITEM,
+        'Please provide a proper item for the service.'
+      )
+
+    for (const prop of props)
+      if (!data.from[prop] || !data.to[prop])
+        throw new HttpError(
+          IErrorCodes.DELIVERY_MISSING_DATA,
+          'Please complete the required data for delivery.'
+        )
+  }
+
+  public async createJob(
+    {
+      creator,
+      type,
+      data
+    }: IJobOptions
+  ) {
+    const uid = await this.genUID()
+    
+    switch (type) {
+      case IJobTypes.PADELIVER: {
+        this.verifyDeliveryProps(data)
+
+        // typings purposes
+        const delivery = data as IDelivery,
+          sizes = { // byte length of data
+            from: (2 * 3) +
+              delivery.from.fullName.length +
+              delivery.from.location.length +
+              (delivery.from.landmark ?? '').length,
+
+            to: (2 * 3) +
+              delivery.to.fullName.length +
+              delivery.to.location.length +
+              (delivery.to.landmark ?? '').length,
+
+            item: (2 + delivery.item.length)
+          },
+          bytes = new Bytes(sizes.from + sizes.to + sizes.item)
+
+        // from data
+        bytes.writeInt16(delivery.from.fullName.length)
+          .writeStr(delivery.from.fullName)
+          .writeInt16(delivery.from.location.length)
+          .writeStr(delivery.from.location)
+          .writeInt16(
+            (delivery.from.landmark ?? '').length
+          )
+          .writeStr(delivery.from.landmark ?? '')
+
+        // to data
+        bytes.writeInt16(delivery.to.fullName.length)
+          .writeStr(delivery.to.fullName)
+          .writeInt16(delivery.to.location.length)
+          .writeStr(delivery.to.location)
+          .writeInt16(
+            (delivery.to.landmark ?? '').length
+          )
+          .writeStr(delivery.to.landmark ?? '')
+        
+        // item
+        bytes.writeInt16(delivery.item.length)
+            .writeStr(delivery.item)
+
+        const insertData = {
+          creator, type, uid,
+          data: bytes.data()
+        }
+
+        await this.server.db.insert(insertData)
+          .into(Tables.Jobs)
+
+        return insertData
       }
 
-    return await this.server.models.Users.updateOne(
-      { uid: user },
-      {
-        $push: { deliveries: delivery }
+      default: {
+        throw new HttpError(
+          IErrorCodes.JOB_INVALID_TYPE,
+          'Job type not supported. Please try again.'
+        )
       }
-    )
+    }
   }
 }
 
