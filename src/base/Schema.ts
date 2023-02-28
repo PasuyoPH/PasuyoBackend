@@ -5,6 +5,11 @@ class Schema {
 
   constructor(public table: Knex.TableBuilder) {}
 
+  public uid(table: string) {
+    return this.table.string(table, 32)
+      .notNullable()
+  }
+
   public async handle() {}
 }
 

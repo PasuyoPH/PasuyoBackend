@@ -15,6 +15,10 @@ import RiderSchema from '../schemas/Rider'
 import RatesSchema from '../schemas/Rates'
 import JobSchema from '../schemas/Job'
 
+// v2 Schemas
+import { V2RiderSchema, V2UserSchema } from '../schemas/v2/User'
+import V2AddressSchema from '../schemas/v2/Address'
+
 class HttpServer {
   public restana = restana()
   public routes: Map<string, Path> = new Map()
@@ -70,13 +74,21 @@ class HttpServer {
   }
 
   private async setupDatabase() {
-    const tables = [
-      CustomerSchema,
-      DeliveriesSchema,
-      RiderSchema,
-      RatesSchema,
-      JobSchema
-    ]
+    const V2tables = [
+        V2RiderSchema,
+        V2UserSchema,
+
+        V2AddressSchema
+      ],
+      tables = [
+        CustomerSchema,
+        DeliveriesSchema,
+        RiderSchema,
+        RatesSchema,
+        JobSchema,
+
+        ...V2tables
+      ]
 
     for (const Schema of tables) {
       const tableExists = await this.db.schema.hasTable(Schema.tableName)

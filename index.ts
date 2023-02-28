@@ -28,8 +28,15 @@ import CreateJob from './src/routes/job/CreateJob'
 import GetCustomerJobs from './src/routes/job/GetCustomerJobs'
 
 // v2
-import AuthCreate from './src/routes/v2/auth/Create'
-import GetJobs from './src/routes/v2/rider/Jobs'
+import V2AuthCreate from './src/routes/v2/auth/Create'
+import V2GetJobs from './src/routes/v2/rider/Jobs'
+
+import V2GetAddresses from './src/routes/v2/address/GetAddresses'
+import V2AuthUser from './src/routes/v2/auth/AuthUser'
+
+import V2NewAddress from './src/routes/v2/address/NewAddress'
+import V2DeleteAddress from './src/routes/v2/address/DeleteAddress'
+import GetServices from './src/routes/v2/GetServices'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -66,8 +73,16 @@ const main = async () => {
   await http.register(GetCustomerJobs)
 
   // v2
-  await http.register(AuthCreate)
-  await http.register(GetJobs)
+  await http.register(V2AuthCreate)
+  await http.register(V2GetJobs)
+
+  await http.register(V2GetAddresses)
+  await http.register(V2AuthUser)
+
+  await http.register(V2NewAddress)
+  await http.register(V2DeleteAddress)
+
+  await http.register(GetServices)
 
   try {
     await http.ready()

@@ -15,7 +15,7 @@ import { promisify } from 'util'
 import axios from 'axios'
 import { URLSearchParams } from 'url'
 
-import { Rider, User } from '../types/db/User'
+import { V2Rider, V2User } from '../types/v2/db/User'
 
 class Path implements IRoute {
   public path   = '/'
@@ -33,7 +33,7 @@ class Path implements IRoute {
   public requireUserToken = false
   public token: string = null
 
-  public user: Rider | User = null
+  public user: V2Rider | V2User = null
 
   private clean(data: IPathReturnObject | ICustomError) {
     return this.server.config.http.cleanedJsonResponses ?
@@ -107,7 +107,7 @@ class Path implements IRoute {
 
         if (this.requireUserToken) {
           const token = req.headers.authorization as string ?? '',
-            user = await this.server.utils.getUserFromToken(token) as any,
+            user = await this.server.utils.user.fromToken(token).catch(console.error) as any,
             isValid = !!user
 
           if (!isValid) { // token failed

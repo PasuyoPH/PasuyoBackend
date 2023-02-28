@@ -5,7 +5,14 @@ const Tables = {
   Deliveries: 'deliveries',
   Rates: 'rates',
 
-  Jobs: 'jobs'
+  Jobs: 'jobs',
+
+  v2: {
+    Users: 'v2_users',
+    Riders: 'v2_riders',
+
+    Address: 'v2_address'
+  }
 }
 
 export default Tables

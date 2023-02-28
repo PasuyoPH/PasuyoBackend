@@ -174,7 +174,7 @@ class Utils {
           86400
         )
 
-      await this.server.db.table(isRider ? Tables.Riders : Tables.Customers)
+      await this.server.db.table(isRider ? Tables.v2.Riders : Tables.v2.Users)
         .insert(user)
 
       return token
@@ -229,19 +229,6 @@ class Utils {
       },
       86400
     )
-  }
-
-  public async getUserFromToken(token: string) {
-    const data = await this.decryptJWT<ITokenData>(token)
-    if (!data) return
-
-    const table = data.role === 'CUSTOMER' ? (Tables.Customers) : (data.role === 'ADMIN' ? Tables.Customers : Tables.Riders),
-      { uid, pin } = data
-    
-    return await this.server.db.table(table)
-      .select('*')
-      .where({ uid, pin })
-      .first()
   }
 
   public async getRiderByID(uid: string): Promise<IRider> {

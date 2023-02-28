@@ -1,7 +1,7 @@
-import { HttpUser } from '../v2/http/User'
+import { V2HttpUser } from '../http/User'
 
 interface CreateUserOptions {
-  user: HttpUser
+  user: V2HttpUser
   rider?: boolean
 }
 

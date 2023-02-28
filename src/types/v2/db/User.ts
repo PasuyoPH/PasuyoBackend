@@ -4,6 +4,13 @@ enum V2RiderStates {
   RIDER_OFFLINE
 }
 
+enum V2UserRoles {
+  CUSTOMER,
+  RIDER,
+  ADMIN,
+  INVALID
+}
+
 interface V2User {
   uid?: string
   email?: string
@@ -12,7 +19,9 @@ interface V2User {
   fullName?: string
 
   pin?: string
-  role?: 'CUSTOMER' | 'RIDER' | 'ADMIN'
+  role?: V2UserRoles
+
+  referral?: string
 }
 
 interface V2Rider extends V2User {
@@ -24,5 +33,6 @@ export {
   V2Rider,
   V2RiderStates,
 
-  V2User
+  V2User,
+  V2UserRoles
 }

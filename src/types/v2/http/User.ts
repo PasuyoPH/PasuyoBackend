@@ -1,4 +1,4 @@
-interface HttpUser {
+interface V2HttpUser {
   email?: string
   phone?: string
 
@@ -8,12 +8,12 @@ interface HttpUser {
   referral?: string
 }
 
-interface HttpUserData {
-  user: HttpUser
+interface V2HttpUserData {
+  user: V2HttpUser
   rider: boolean
 }
 
 export {
-  HttpUser,
-  HttpUserData
+  V2HttpUser,
+  V2HttpUserData
 }
