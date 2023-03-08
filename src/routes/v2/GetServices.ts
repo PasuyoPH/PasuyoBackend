@@ -1,7 +1,7 @@
 import Path from '../../base/Path'
 import { Services } from '../../types/v2/PasuyoService'
 
-class GetServices extends Path {
+class V2GetServices extends Path {
   public path = '/v2/services'
   public requireUserToken = false // false for debug mode
 
@@ -13,4 +13,4 @@ class GetServices extends Path {
   }
 }
 
-export default GetServices
+export default V2GetServices

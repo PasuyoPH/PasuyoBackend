@@ -3,6 +3,7 @@ interface V2HttpAddressData {
   longitude: number
 
   formattedAddress: string
+  name: string
 
   // optional data
   house?: string

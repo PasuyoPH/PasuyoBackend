@@ -107,7 +107,7 @@ class Path implements IRoute {
 
         if (this.requireUserToken) {
           const token = req.headers.authorization as string ?? '',
-            user = await this.server.utils.user.fromToken(token).catch(console.error) as any,
+            user = await this.server.utils.user.fromToken(token).catch(() => {}) as any,
             isValid = !!user
 
           if (!isValid) { // token failed

@@ -60,6 +60,10 @@ enum IErrorCodes {
 
   // Job related codes
   JOB_INVALID_TYPE           = 5000,
+
+  // SetGeo related codes
+  SET_GEO_INVALID_RIDER_ID = 6001,
+  SET_GEO_INVALID_GEOMETRY = 6002,
 }
 
 export {

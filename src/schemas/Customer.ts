@@ -25,7 +25,7 @@ class CustomerSchema extends Schema {
     this.table.text('referral')
       .defaultTo('pasuyo')
 
-    this.table.text('role')
+    this.table.tinyint('role')
       .notNullable()
   }
 }

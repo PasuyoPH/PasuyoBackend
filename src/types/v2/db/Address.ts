@@ -7,6 +7,7 @@ interface V2Address {
   longitude?: number
 
   formattedAddress?: string // the text form of the address
+  name?: string
   
   // Additional data
   house?: string // house/floor/unit number

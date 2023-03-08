@@ -7,12 +7,21 @@ import Utils from '../Utils'
 import moment from 'moment'
 import knex, { Knex } from 'knex'
 
+import WebSocket from 'ws'
+import OpenEvent from '../ws/events/Open'
+
+import MessageEvent from '../ws/events/Message'
+import GeoCacheData from '../types/v2/Geo'
+
+import CloseEvent from '../ws/events/Close'
+
 // Schemas
 import CustomerSchema from '../schemas/Customer'
 import DeliveriesSchema from '../schemas/Deliveries'
 
 import RiderSchema from '../schemas/Rider'
 import RatesSchema from '../schemas/Rates'
+
 import JobSchema from '../schemas/Job'
 
 // v2 Schemas
@@ -32,6 +41,9 @@ class HttpServer {
   }
 
   public db: Knex<any, unknown[]>
+  public ws: WebSocket
+
+  public geo: Map<string, GeoCacheData> = new Map()
 
   constructor(public config: IConfig) {
     this.db = knex(
@@ -48,29 +60,43 @@ class HttpServer {
         }
       }
     )
+    
+    if (this.config.ws.enabled)
+      this.setupWebsocket()
 
     this.setupDatabase()
-    this.utils.createJob(
-      {
-        creator: 'a',
-        type: 0,
-        data: {
-          from: {
-            fullName: 'Alex',
-            location: 'Home',
-            landmark: 'Idk'
-          },
+  }
 
-          to: {
-            fullName: 'Jose',
-            location: 'Out',
-            landmakrk: 'idk2'
-          },
+  public async setupWebsocket() {
+    this.ws = new WebSocket(`ws://${this.config.ws.address}:${this.config.ws.port}`)
 
-          item: 'An item'
+    const openEvent = new OpenEvent(this),
+      messageEvent = new MessageEvent(this),
+      closeEvent = new CloseEvent(this)
+
+    const reconnect = () => {
+      setImmediate(
+        () => setTimeout(
+          () => this.setupWebsocket(),
+          this.config.ws.interval
+        )
+      )
+    }
+
+    this.ws
+      .on('open', openEvent.handle.bind(openEvent))
+      .on('message', messageEvent.handle.bind(messageEvent))
+      .on(
+        'close',
+        async () => {
+          const callback = closeEvent.handle.bind(closeEvent)
+          callback()
+
+          await this.log('Connection closed. Attempting to reconnect...')
+          reconnect()
         }
-      }
-    )
+      )
+      .on('error', () => {})
   }
 
   private async setupDatabase() {

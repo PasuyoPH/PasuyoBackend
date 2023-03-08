@@ -1,8 +1,16 @@
+enum PasuyoFormTypes {
+  INPUT,
+  SELECT_ADDRESS
+}
+
 interface PasuyoForm {
-  placeholder: string
+  placeholder?: string
   key: string
 
   icon?: string
+  type?: PasuyoFormTypes
+
+  label?: string
 }
 
 interface PasuyoFormStructure {
@@ -17,7 +25,11 @@ interface PasuyoService {
   unavailable?: boolean
   label: string
 
-  form: PasuyoFormStructure[]
+  form: PasuyoFormStructure[] | PasuyoFormStructure[][] // use 2d arrays if planning to use paging system
+  usePages?: boolean
+
+  displayLabel: string
+  displaySubLabel?: string
 }
 
 const Services: PasuyoService[] = [
@@ -26,24 +38,28 @@ const Services: PasuyoService[] = [
     icon: 'deliver',
     
     label: 'PADELIVER',
+
     form: [
       {
         content: [
-          { key: 'RowForm1', placeholder: 'Row Form 1' },
-          { key: 'RowForm2', placeholder: 'Row Form 2' }
-        ],
-        row: true
+          { placeholder: 'Item Name', key: 'item', icon: 'boxes' }
+        ]
       },
 
       {
         content: [
-          { key: 'ColumnForm1', placeholder: 'Column Form 1' },
-          { key: 'ColumnForm2', placeholder: 'Column Form 2' }
-        ]
+          { key: 'fromAddress', label: 'From Address', type: PasuyoFormTypes.SELECT_ADDRESS },
+          { key: 'toAddress', label: 'To Address', type: PasuyoFormTypes.SELECT_ADDRESS }
+        ],
+        row: true
       }
     ],
 
-    unavailable: false
+    unavailable: false,
+    usePages: false,
+
+    displayLabel: 'Pa Deliver',
+    displaySubLabel: 'Pa deliver kana!'
   },
 
   {
@@ -53,7 +69,8 @@ const Services: PasuyoService[] = [
     label: 'PABILI',
     unavailable: true,
 
-    form: []
+    form: [],
+    displayLabel: 'Pa Bili'
   },
 
   {
@@ -63,7 +80,8 @@ const Services: PasuyoService[] = [
     label: 'PAANGKAS',
     unavailable: true,
 
-    form: []
+    form: [],
+    displayLabel: 'Pa Angkas'
   },
 
   {
@@ -73,7 +91,8 @@ const Services: PasuyoService[] = [
     label: 'PADEPOSIT',
     unavailable: true,
 
-    form: []
+    form: [],
+    displayLabel: 'Pa Deposit'
   },
 
   {
@@ -83,7 +102,8 @@ const Services: PasuyoService[] = [
     label: 'PAUTOS',
     unavailable: true,
 
-    form: []
+    form: [],
+    displayLabel: 'Pa Utos'
   }
 ]
 
@@ -91,6 +111,8 @@ export {
   PasuyoForm,
   PasuyoFormStructure,
 
+  PasuyoFormTypes,
   PasuyoService,
+  
   Services
 }

@@ -12,7 +12,7 @@ import {
 import { IAuthUser, INewUser } from './types/data'
 import HttpError from './base/HttpError'
 
-import { ITokenData } from './types/Token'
+import { BASE_DELIVERY_FEE, DeliveryFees } from './types/v2/Fees'
 import IRateRider from './types/data/RateRider'
 
 import { IRider, IRiderStates } from './types/db'
@@ -27,14 +27,52 @@ import IJobOptions from './types/data/JobOptions'
 import UserUtils from './utils/User'
 import RiderUtils from './utils/Rider'
 
+import WsUtils from './utils/Ws'
+import WebSocket from 'ws'
+import { ProtocolSendTypes } from './types/v2/ws/Protocol'
+
 class Utils {
   public user: UserUtils
   public rider: RiderUtils
 
+  public ws: WsUtils
+
   constructor(public server: HttpServer) {
     this.user  = new UserUtils(this.server)
     this.rider = new RiderUtils(this.server)
+
+    this.ws    = new WsUtils(this.server)
   }
+
+  public calculateDeliveryFee(distance: number | string) {
+    if (isNaN(distance as any))
+      distance = 0
+
+    if (typeof distance === 'string')
+      distance = parseInt(distance)
+
+    const nearest = DeliveryFees.filter(
+        (fee) => fee.distance <= distance
+      )
+      .sort(
+        ((a, b) => b.distance - a.distance)
+      )
+
+    if (nearest.length < 1)
+      return DeliveryFees[DeliveryFees.length - 1]
+    else return nearest[0]
+  }
+
+  public calculateDeliveryFeeV2(distance: number | string) {
+    if (typeof distance === 'string')
+      distance = Number(distance)
+
+    return Math.round(
+      BASE_DELIVERY_FEE + (
+        (distance - 1) * 10
+      )
+    )
+  }  
 
   public hash(str: string): Promise<string> {
     return new Promise(
@@ -379,6 +417,14 @@ class Utils {
 
         await this.server.db.insert(insertData)
           .into(Tables.Jobs)
+
+        if (this.server.ws && this.server.ws.readyState === WebSocket.OPEN)
+          this.server.utils.ws.send( // notify backend new job was made
+            {
+              c: ProtocolSendTypes.SEND_JOB_TO_RIDERS,
+              d: { uid }
+            }
+          )
 
         return insertData
       }

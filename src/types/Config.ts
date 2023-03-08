@@ -23,6 +23,16 @@ interface ICaptchaConfig {
   secret: string
 }
 
+interface WebSocketConfig {
+  address: string
+  port: number
+  
+  name: string
+  enabled: boolean
+
+  interval: number
+}
+
 interface IConfig {
   http: IHttpConfig
   db: IDatabaseConfig
@@ -34,6 +44,7 @@ interface IConfig {
   jwt_secret: string
 
   maxMealsPerOrder: number
+  ws: WebSocketConfig
 }
 
 export {
@@ -41,5 +52,7 @@ export {
   IHttpConfig,
 
   ICaptchaConfig,
-  IConfig
+  IConfig,
+
+  WebSocketConfig
 }

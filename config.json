@@ -31,5 +31,15 @@
   },
 
   "cypher_iv_key": "fb1f4b0a7daaada6cae678df32fad0f0",
-  "jwt_secret": "jwt_secret"
+  "jwt_secret": "jwt_secret",
+
+  "ws": {
+    "port": 3000,
+    "address": "127.0.0.1",
+
+    "name": "pasuyo",
+    "enabled": true,
+
+    "interval": 5000
+  }
 }

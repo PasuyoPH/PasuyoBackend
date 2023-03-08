@@ -36,7 +36,11 @@ import V2AuthUser from './src/routes/v2/auth/AuthUser'
 
 import V2NewAddress from './src/routes/v2/address/NewAddress'
 import V2DeleteAddress from './src/routes/v2/address/DeleteAddress'
-import GetServices from './src/routes/v2/GetServices'
+
+import V2GetServices from './src/routes/v2/GetServices'
+import V2GetDeliveryFees from './src/routes/v2/fees/GetDeliveryFees'
+
+import V2SetGeo from './src/routes/v2/rider/SetGeo'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -82,7 +86,10 @@ const main = async () => {
   await http.register(V2NewAddress)
   await http.register(V2DeleteAddress)
 
-  await http.register(GetServices)
+  await http.register(V2GetServices)
+  await http.register(V2GetDeliveryFees)
+
+  await http.register(V2SetGeo)
 
   try {
     await http.ready()
