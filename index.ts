@@ -30,17 +30,18 @@ import GetCustomerJobs from './src/routes/job/GetCustomerJobs'
 // v2
 import V2AuthCreate from './src/routes/v2/auth/Create'
 import V2GetJobs from './src/routes/v2/rider/Jobs'
-
 import V2GetAddresses from './src/routes/v2/address/GetAddresses'
 import V2AuthUser from './src/routes/v2/auth/AuthUser'
-
 import V2NewAddress from './src/routes/v2/address/NewAddress'
 import V2DeleteAddress from './src/routes/v2/address/DeleteAddress'
-
 import V2GetServices from './src/routes/v2/GetServices'
 import V2GetDeliveryFees from './src/routes/v2/fees/GetDeliveryFees'
-
-import V2SetGeo from './src/routes/v2/rider/SetGeo'
+import V2CreateJob from './src/routes/v2/job/Create'
+import V2CalculateDistance from './src/routes/v2/distance/Calculate'
+import V2TestPushNotif from './src/routes/v2/tests/PushNotif'
+import V2FinalizeJob from './src/routes/v2/job/Finalize'
+import V2GetAddressesById from './src/routes/v2/address/GetAddressesById'
+import V2AcceptJob from './src/routes/v2/job/Accept'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -79,17 +80,18 @@ const main = async () => {
   // v2
   await http.register(V2AuthCreate)
   await http.register(V2GetJobs)
-
   await http.register(V2GetAddresses)
   await http.register(V2AuthUser)
-
   await http.register(V2NewAddress)
   await http.register(V2DeleteAddress)
-
   await http.register(V2GetServices)
   await http.register(V2GetDeliveryFees)
-
-  await http.register(V2SetGeo)
+  await http.register(V2CreateJob)
+  await http.register(V2CalculateDistance)
+  await http.register(V2TestPushNotif)
+  await http.register(V2FinalizeJob)
+  await http.register(V2GetAddressesById)
+  await http.register(V2AcceptJob)
 
   try {
     await http.ready()

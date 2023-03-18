@@ -10,8 +10,6 @@ class V2AddressSchema extends Schema {
     this.uid('user')
 
     this.table.text('name')
-      .notNullable()
-
     this.table.double('latitude')
       .notNullable()
 

@@ -16,7 +16,7 @@ class GetJobs extends Path implements IRoute {
       )
 
     return {
-      value: await this.server.utils.rider.getJobs(),
+      value: await this.server.utils.rider.getJobs(this.user.uid),
       code: 200
     }
   }

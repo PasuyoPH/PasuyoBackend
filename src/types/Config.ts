@@ -33,18 +33,20 @@ interface WebSocketConfig {
   interval: number
 }
 
+interface GoogleConfig {
+  apikey: string
+}
+
 interface IConfig {
   http: IHttpConfig
   db: IDatabaseConfig
-
   adminKeys: string[]
   captcha: ICaptchaConfig
-
   cypher_iv_key: string
   jwt_secret: string
-
   maxMealsPerOrder: number
   ws: WebSocketConfig
+  google: GoogleConfig
 }
 
 export {

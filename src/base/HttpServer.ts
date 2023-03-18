@@ -11,7 +11,7 @@ import WebSocket from 'ws'
 import OpenEvent from '../ws/events/Open'
 
 import MessageEvent from '../ws/events/Message'
-import GeoCacheData from '../types/v2/Geo'
+import { GeoCacheData } from '../types/v2/Geo'
 
 import CloseEvent from '../ws/events/Close'
 
@@ -27,6 +27,7 @@ import JobSchema from '../schemas/Job'
 // v2 Schemas
 import { V2RiderSchema, V2UserSchema } from '../schemas/v2/User'
 import V2AddressSchema from '../schemas/v2/Address'
+import V2JobSchema from '../schemas/v2/Job'
 
 class HttpServer {
   public restana = restana()
@@ -103,8 +104,8 @@ class HttpServer {
     const V2tables = [
         V2RiderSchema,
         V2UserSchema,
-
-        V2AddressSchema
+        V2AddressSchema,
+        V2JobSchema
       ],
       tables = [
         CustomerSchema,

@@ -1,3 +1,5 @@
+import { Geo } from '../Geo'
+
 enum ProtocolTypes {
   ERROR,
   GET_ALL_LOCATIONS, // unused
@@ -32,11 +34,13 @@ type WsProtocol = WsErrorProtocol | WsGeoUpdateProtocol | WsClientDisconnectProt
 
 // Send Protocol
 enum ProtocolSendTypes {
-  INIT,
-  SET_GEO,
+  INIT_RIDER,
   INIT_BACKEND,
-  GET_ALL_LOCATIONS,
-  SEND_JOB_TO_RIDERS
+
+  JOB_NEW,
+
+  JOB_ACCEPT,
+  JOB_DENY
 }
 
 interface WsSendInitBackendProtocol {
@@ -45,8 +49,13 @@ interface WsSendInitBackendProtocol {
 }
 
 interface WsSendJobToRidersProtocol {
-  c: ProtocolSendTypes.SEND_JOB_TO_RIDERS
-  d: { uid: string }
+  c: ProtocolSendTypes.JOB_NEW
+  d: {
+    uid: string // job id
+    geo: {
+      address: string // address id
+    } & Geo
+  }
 }
 
 type WsSendProtocol = WsSendInitBackendProtocol | WsSendJobToRidersProtocol

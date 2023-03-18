@@ -42,7 +42,12 @@ const Services: PasuyoService[] = [
     form: [
       {
         content: [
-          { placeholder: 'Item Name', key: 'item', icon: 'boxes' }
+          { placeholder: 'Item Name', key: 'item', icon: 'boxes' },
+          {
+            placeholder: 'Weight (KG)',
+            key: 'weight',
+            icon: 'balance-scale'
+          }
         ]
       },
 

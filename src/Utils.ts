@@ -29,7 +29,13 @@ import RiderUtils from './utils/Rider'
 
 import WsUtils from './utils/Ws'
 import WebSocket from 'ws'
+
 import { ProtocolSendTypes } from './types/v2/ws/Protocol'
+import V2JobOptions from './types/v2/Job'
+import { Geo } from './types/v2/Geo'
+import { V2Job, V2JobStatus } from './types/v2/db/Job'
+import V2HttpErrorCodes from './types/v2/http/Codes'
+import V2Address from './types/v2/db/Address'
 
 class Utils {
   public user: UserUtils
@@ -356,6 +362,136 @@ class Utils {
         )
   }
 
+  public async pointsToBuffer(
+    geo: { uid: string } & Geo
+  ): Promise<Buffer> {
+    /*const size = 8,
+      length = Array.isArray(geo) ? geo.length : 1,
+      buffer = Buffer.alloc(length * size)
+
+    for (let i = 0; i < length; i++) {
+      const data = Array.isArray(geo) ? geo[i] : geo
+
+      buffer.writeFloatLE(data.latitude, i * size)
+      buffer.writeFloatLE(data.longitude, i * size + 4)
+    }
+
+    return buffer*/
+
+    const size = 8 + geo.uid.length,
+      buffer = Buffer.alloc(size)
+
+    buffer.writeFloatLE(geo.latitude)
+    buffer.writeFloatLE(geo.longitude, 4)
+    buffer.write(geo.uid, 8, 'utf-8')
+
+    return buffer
+  }
+
+  public async fetchAddress(uid: string): Promise<V2Address> {
+    return await this.server.db.table(Tables.v2.Address)
+      .select('*')
+      .where({ uid })
+      .first()
+  }
+
+  public async createJobV2(
+    { creator, type, points, draft, ...other }: V2JobOptions
+  ) {
+    if (!points || points.length < 2)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_INVALID_POINTS,
+        'Invalid location points where provided. Please make sure there are atleast 2.'
+      )
+
+    const startPoint = await this.fetchAddress(points[0]),
+      finalPoint = await this.fetchAddress(points[points.length - 1])
+
+    if (!startPoint || !finalPoint)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_INVALID_POINTS,
+        'Provided location points don\'t exist in our data. Please make sure to choose an existing address data.'
+      )
+
+    if (
+      (
+        other.item &&
+        (
+          !other.weight ||
+          isNaN(other.weight as any)
+        )
+      ) ||
+      (other.weight && !other.item)
+    )
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_INVALID_DELIVERY,
+        'Invalid delivery data was provided.'
+      )
+
+    const uid = await this.genUID(),
+      distance = await this.server.utils.user.calculateDistance(
+        [
+          {
+            latitude: startPoint.latitude,
+            longitude: startPoint.longitude
+          },
+          
+          {
+            latitude: finalPoint.latitude,
+            longitude: finalPoint.longitude
+          }
+        ]
+      ),
+      data: V2Job = {
+        uid,
+        creator,
+        type,
+        status: V2JobStatus.PROCESSED,
+        startPoint: await this.pointsToBuffer(
+          {
+            uid: startPoint.uid,
+            latitude: startPoint.latitude,
+            longitude: startPoint.longitude
+          }
+        ),
+        finalPoint: await this.pointsToBuffer(
+          {
+            uid: finalPoint.uid,
+            latitude: finalPoint.latitude,
+            longitude: finalPoint.longitude
+          }
+        ),
+        item: other.item,
+        weight: Number(other.weight),
+        draft,
+        ...distance
+      }
+
+    await this.server.db.table(Tables.v2.Jobs)
+      .insert(data)
+
+    if (
+      this.server.config.ws.enabled &&
+      this.server.ws &&
+      this.server.ws.readyState === WebSocket.OPEN
+    )
+      this.server.utils.ws.send( // notify ws new job was made
+        {
+          c: ProtocolSendTypes.JOB_NEW,
+          d: {
+            uid,
+            geo: {
+              address: startPoint.uid,
+              latitude: startPoint.latitude,
+              longitude: startPoint.longitude
+            }
+          }
+        }
+      )
+
+    return data
+  }
+
   public async createJob(
     {
       creator,
@@ -417,14 +553,6 @@ class Utils {
 
         await this.server.db.insert(insertData)
           .into(Tables.Jobs)
-
-        if (this.server.ws && this.server.ws.readyState === WebSocket.OPEN)
-          this.server.utils.ws.send( // notify backend new job was made
-            {
-              c: ProtocolSendTypes.SEND_JOB_TO_RIDERS,
-              d: { uid }
-            }
-          )
 
         return insertData
       }

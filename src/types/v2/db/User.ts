@@ -22,10 +22,10 @@ interface V2User {
   role?: V2UserRoles
 
   referral?: string
+  credits?: number
 }
 
 interface V2Rider extends V2User {
-  state?: V2RiderStates
   verified?: boolean
 }
 

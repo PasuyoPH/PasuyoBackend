@@ -1,23 +1,52 @@
 import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
-
 import V2CreateUserOptions from '../types/v2/utils/User'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
-
 import Tables from '../types/Tables'
 import { V2Rider, V2RiderStates, V2User, V2UserRoles } from '../types/v2/db/User'
-
 import V2Auth from '../types/v2/http/Auth'
 import { V2TokenData } from '../types/v2/Token'
 import V2HttpAddressData from '../types/v2/http/Address'
 import V2Address from '../types/v2/db/Address'
+import { Geo } from '../types/v2/Geo'
+import axios from 'axios'
+import { V2CalculateDistanceResult, V2CalculateDistanceSatus } from '../types/v2/http/CalculateDistance'
+import { V2Job } from '../types/v2/db/Job'
+
+const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 
 class UserUtils {
   constructor(public server: HttpServer) {}
 
+  public async finalizeJob(user: string, uid: string) {
+    const job = (
+      await this.server.db.table(Tables.v2.Jobs)
+        .select('*')
+        .where({ uid, creator: user })
+        .first()
+    ) as V2Job
+
+    if (!job) return null // should throw error instead
+    job.draft = false
+
+    await this.server.db.table(Tables.v2.Jobs)
+      .update(job)
+      .where(
+        { uid: job.uid }
+      )
+      
+    return job
+  }
+
   public async create(
     { user, rider }: V2CreateUserOptions
   ) {
+    if (!user.fullName || user.fullName.length < 2)
+      throw new HttpError(
+        V2HttpErrorCodes.AUTH_INVALID_NAME,
+        'Please provide a proper name.'
+      )
+
     if (!user.email?.match(/.+@.+\..+/g))
       throw new HttpError(
         V2HttpErrorCodes.AUTH_INVALID_EMAIL,
@@ -81,6 +110,7 @@ class UserUtils {
   public async getAddresses(user: string): Promise<V2Address[]> {
     return this.server.db.table(Tables.v2.Address)
       .select('*')
+      .where({ user })
   }
 
   public async newAddress(user: string, data: V2HttpAddressData) {
@@ -198,6 +228,70 @@ class UserUtils {
       .where({ user, uid })
 
     return result > 0
+  }
+
+  public async calculateDistance(points: Geo[]): Promise<
+    {
+      fee: number
+      distance: number
+      eta: number
+    }
+  > {    
+    if (!Array.isArray(points) || points.length < 2)
+      throw new HttpError(
+        V2HttpErrorCodes.DISTANCE_INVALID_POINTS,
+        'Invalid points provided. Make sure to have at least two.'
+      )
+
+    const [origin, ...destinations] = points,
+      encode = (point: Geo) => {
+        if (
+          typeof point.latitude !== 'number' ||
+          typeof point.longitude !== 'number'
+        )
+          throw new HttpError(
+            V2HttpErrorCodes.DISTANCE_MUST_BE_FLOAT,
+            'Please provide a float for the points.'
+          )
+
+        return point.latitude + ',' + point.longitude
+      },
+      params = new URLSearchParams()
+
+    params.append('origins', encode(origin))
+    params.append(
+      'destinations',
+      destinations.map(
+        (point) => encode(point)
+      ).join('|')
+    )
+    params.append('key', this.server.config.google.apikey)
+
+    console.log(params)
+
+    const { data } = await axios(
+        {
+          method: 'get',
+          url: API_URL + '?' + params.toString()
+        }
+      ),
+      results = data.rows[0].elements
+
+    let totalMeters = 0,
+      totalSeconds = 0
+
+    for (const result of results) {
+      totalMeters += result.distance?.value ?? 0
+      totalSeconds += result.duration?.value ?? 0
+    }
+
+    return {
+      fee: this.server.utils.calculateDeliveryFeeV2(totalMeters / 1000),
+      distance: Math.round(
+        (totalMeters / 1000) * 10
+      ) / 10, // km
+      eta: totalSeconds // seconds
+    }
   }
 }
 

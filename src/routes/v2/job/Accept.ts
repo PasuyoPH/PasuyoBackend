@@ -1,13 +1,11 @@
 import HttpError from '../../../base/HttpError'
 import Path from '../../../base/Path'
-
-import { HttpReq, IErrorCodes } from '../../../types/Http'
+import { HttpReq } from '../../../types/Http'
 import { V2UserRoles } from '../../../types/v2/db/User'
+import V2HttpErrorCodes from '../../../types/v2/http/Codes'
 
-import GeoCacheData from '../../../types/v2/Geo'
-
-class V2SetGeo extends Path {
-  public path = '/v2/rider/geo'
+class V2AcceptJob extends Path {
+  public path = '/v2/jobs/:uid/accept'
   public method = 'post'
 
   public requireUserToken = true
@@ -15,16 +13,15 @@ class V2SetGeo extends Path {
   public async onRequest(req: HttpReq) {
     if (this.user.role !== V2UserRoles.RIDER)
       throw new HttpError(
-        IErrorCodes.USER_NOT_RIDER,
+        V2HttpErrorCodes.USER_NOT_RIDER,
         'Method not allowed. User must be a rider'
       )
 
-    const { data }: { data: GeoCacheData } = req.body as any
     return {
-      value: this.server.utils.rider.setRiderGeo(data),
+      value: await this.server.utils.rider.acceptJob(this.user, req.params.uid),
       code: 200
     }
   }
 }
 
-export default V2SetGeo
+export default V2AcceptJob

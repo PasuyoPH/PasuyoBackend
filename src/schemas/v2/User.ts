@@ -26,6 +26,10 @@ class V2UserSchema extends Schema {
 
     this.table.tinyint('role')
       .notNullable()
+
+    this.table.bigInteger('credits')
+      .notNullable()
+      .defaultTo(0)
   }
 }
 
