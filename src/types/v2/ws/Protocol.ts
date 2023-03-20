@@ -40,7 +40,9 @@ enum ProtocolSendTypes {
   JOB_NEW,
 
   JOB_ACCEPT,
-  JOB_DENY
+  JOB_DENY,
+
+  GET_ALL_AVAILABLE_RIDERS
 }
 
 interface WsSendInitBackendProtocol {
@@ -58,7 +60,15 @@ interface WsSendJobToRidersProtocol {
   }
 }
 
-type WsSendProtocol = WsSendInitBackendProtocol | WsSendJobToRidersProtocol
+interface WsSendRequestAvailableRidersProtocol {
+  c: ProtocolSendTypes.GET_ALL_AVAILABLE_RIDERS
+  d: null
+}
+
+type WsSendProtocol =
+  WsSendInitBackendProtocol |
+  WsSendJobToRidersProtocol |
+  WsSendRequestAvailableRidersProtocol
 
 export {
   ProtocolTypes,
@@ -73,5 +83,7 @@ export {
   WsSendInitBackendProtocol,
 
   WsSendProtocol,
-  WsSendJobToRidersProtocol
+  WsSendJobToRidersProtocol,
+
+  WsSendRequestAvailableRidersProtocol
 }

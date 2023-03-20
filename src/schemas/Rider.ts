@@ -23,6 +23,7 @@ class RiderSchema extends Schema {
       .notNullable()
 
     this.table.boolean('verified')
+    //this.table.tinyint('status')
     this.table.text('referral')
       .defaultTo('pasuyo')
 

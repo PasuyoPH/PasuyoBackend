@@ -5,6 +5,7 @@ enum V2JobTypes {
 
 enum V2JobStatus {
   PROCESSED,
+  ACCEPTED,
   DELIVER_PICKED_UP,
   DONE,
   CANCELLED = -1

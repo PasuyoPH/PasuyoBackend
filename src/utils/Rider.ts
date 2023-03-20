@@ -2,7 +2,7 @@ import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
 import { V2Job, V2JobStatus } from '../types/v2/db/Job'
-import { V2Rider } from '../types/v2/db/User'
+import { V2Rider, V2RiderStates } from '../types/v2/db/User'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
 
 class RiderUtils {
@@ -14,7 +14,37 @@ class RiderUtils {
       .whereIn('uid', ids)
   }
 
-  public async acceptJob(rider: V2Rider, uid: string) {
+  public async setOffline(uid: string) {
+    return await this.server.db.table<V2Rider>(Tables.v2.Riders)
+      .update('state', V2RiderStates.RIDER_OFFLINE)
+      .where({ uid })
+  }
+
+  public async setOnline(uid: string) {
+    return await this.server.db.table<V2Rider>(Tables.v2.Riders)
+      .update('state', V2RiderStates.RIDER_ONLINE)
+      .where({ uid })
+  }
+
+  public async completeJob(file: Buffer, uid: string) {
+    if (!file)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
+        'Please provide a proper image file.'
+      )
+
+    // todo: upload to s3, and get url
+    await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .update(
+        {
+          status: V2JobStatus.DONE,
+          finishedAt: Date.now()
+        }
+      )
+      .where({ uid })
+  }
+
+  /*public async acceptJob(rider: V2Rider, uid: string) {
     // check if rider already has jobs pending
     const riderHasJob = async () => {
       const jobs = await this.server.db.table<V2Job>(Tables.v2.Jobs)
@@ -30,7 +60,7 @@ class RiderUtils {
     if (await riderHasJob())
       throw new HttpError(
         V2HttpErrorCodes.JOB_RIDER_HAS_JOB,
-        'Rider already has an existing job'
+        'You already have an existing job'
       )
 
     // fetch this job
@@ -44,6 +74,8 @@ class RiderUtils {
         V2HttpErrorCodes.JOB_NOT_EXIST,
         'This job can\'t be accepted. It doesn\'t exist.'
       )
+
+    console.log(rider.credits)
 
     if (rider.credits < job.fee)
       throw new HttpError(
@@ -62,28 +94,107 @@ class RiderUtils {
           )
       )
 
-    job.rider = rider.uid // update this job's rider
     rider.credits -= job.fee
 
     // update rider
     await this.server.db.table(Tables.v2.Riders)
-      .update(rider)
+      .update({ credits: rider.credits })
+      .where({ uid: rider.uid })
 
     await this.server.db.table(Tables.v2.Jobs)
-      .update(job)
+      .update(
+        {
+          rider: rider.uid,
+          status: V2JobStatus.ACCEPTED,
+          startedAt: Date.now()
+        }
+      )
+      .where({ uid: job.uid })
 
     return job
+  }*/
+
+  public async acceptJob(rider: V2Rider, uid: string) {
+    const transaction = await this.server.db.transaction(
+      async (trx) => {
+        const job = await trx.table<V2Job>(Tables.v2.Jobs)
+          .select('*')
+          .where({ uid })
+          .where('status', V2JobStatus.PROCESSED)
+          .whereNull('rider')
+          .first()
+    
+        if (!job)
+          throw new HttpError(
+            V2HttpErrorCodes.JOB_FAILED_TO_ACCEPT,
+            'This job can\'t be accepted. It doesn\'t exist, or its status is not PROCESSED, or it already has a rider assigned.'
+          )
+    
+        const updatedRider = await trx.table(Tables.v2.Riders)
+          .where(
+            {
+              uid: rider.uid,
+              state: V2RiderStates.RIDER_ONLINE
+            }
+          )
+          .where('credits', '>=', job.fee)
+          .update(
+            {
+              credits: rider.credits - job.fee,
+              state: V2RiderStates.RIDER_UNAVAILABLE
+            }
+          )
+          .returning('*')
+
+        console.log(updatedRider)
+    
+        if (!updatedRider[0])
+          throw new HttpError(
+            V2HttpErrorCodes.JOB_NO_CREDITS_OR_NOT_OFFLINE,
+            'You do not have enough credits for this job, or your rider status is not ONLINE.'
+          )
+    
+        await trx.table(Tables.v2.Jobs)
+          .where({ uid: job.uid })
+          .update(
+            {
+              rider: rider.uid,
+              status: V2JobStatus.ACCEPTED,
+              startedAt: Date.now(),
+            }
+          )
+    
+        return job
+      }
+    )
+  
+    return transaction
   }
 
-  // get available jobs
+  /**
+   * Get available jobs.
+   * Filter & reduce was removed in favour of server-side performance.
+   * @param rider Rider UID
+   * @returns An array of jobs
+   */
   public async getJobs(rider: string) {
     const jobs = (
-      await this.server.db.table(Tables.v2.Jobs)
+      await this.server.db.table<V2Job>(Tables.v2.Jobs)
         .select('*')
-        .whereNot('status', V2JobStatus.CANCELLED)
-        .whereNot('status', V2JobStatus.DONE)
-      ) as V2Job[],
-      filtered = jobs.reduce( // filter jobs
+        .where(
+          function() {
+            this.where({ status: V2JobStatus.PROCESSED })
+              .orWhere('rider', rider)
+              .whereNotIn(
+                'status',
+                [V2JobStatus.CANCELLED, V2JobStatus.DONE]
+              )
+          }
+        )
+      ) as V2Job[]
+
+    return jobs
+      /*filtered = jobs.reduce( // filter jobs
         (result, curr) => {
           switch (curr.status) {
             case V2JobStatus.PROCESSED:
@@ -116,7 +227,7 @@ class RiderUtils {
         }
       )
 
-    return filtered
+    return filtered*/
   }
 }
 

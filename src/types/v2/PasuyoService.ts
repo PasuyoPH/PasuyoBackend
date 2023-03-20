@@ -11,6 +11,7 @@ interface PasuyoForm {
   type?: PasuyoFormTypes
 
   label?: string
+  numberOnly?: boolean
 }
 
 interface PasuyoFormStructure {
@@ -46,7 +47,8 @@ const Services: PasuyoService[] = [
           {
             placeholder: 'Weight (KG)',
             key: 'weight',
-            icon: 'balance-scale'
+            icon: 'balance-scale',
+            numberOnly: true
           }
         ]
       },

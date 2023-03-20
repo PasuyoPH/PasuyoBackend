@@ -42,6 +42,7 @@ import V2TestPushNotif from './src/routes/v2/tests/PushNotif'
 import V2FinalizeJob from './src/routes/v2/job/Finalize'
 import V2GetAddressesById from './src/routes/v2/address/GetAddressesById'
 import V2AcceptJob from './src/routes/v2/job/Accept'
+import V2CompeleteJob from './src/routes/v2/job/Complete'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -49,6 +50,9 @@ const main = async () => {
   // set restana middlewares
   http.restana.use(
     bodyParser.json()
+  )
+  http.restana.use(
+    bodyParser.urlencoded({ extended: true })
   )
 
   http.restana.use(
@@ -92,6 +96,7 @@ const main = async () => {
   await http.register(V2FinalizeJob)
   await http.register(V2GetAddressesById)
   await http.register(V2AcceptJob)
+  await http.register(V2CompeleteJob)
 
   try {
     await http.ready()

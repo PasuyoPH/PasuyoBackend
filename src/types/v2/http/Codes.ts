@@ -26,14 +26,14 @@ enum V2HttpErrorCodes {
   RATING_RIDER_NOT_EXIST     = 4004,
 
   // Job related codes
-  JOB_INVALID_TYPE       = 5000,
-  JOB_INVALID_POINTS     = 5001,
-  JOB_POINTS_NOT_EXIST   = 5002,
-  JOB_INVALID_DELIVERY   = 5003,
-  JOB_RIDER_HAS_JOB      = 5004,
-  JOB_NOT_EXIST          = 5005,
-  JOB_ALREADY_ACCEPTED   = 5006,
-  JOB_NOT_ENOUGH_CREDITS = 5007,
+  JOB_INVALID_TYPE              = 5000,
+  JOB_INVALID_POINTS            = 5001,
+  JOB_POINTS_NOT_EXIST          = 5002,
+  JOB_INVALID_DELIVERY          = 5003,
+  JOB_RIDER_HAS_JOB             = 5004,
+  JOB_FAILED_TO_ACCEPT          = 5005,
+  JOB_ALREADY_ACCEPTED          = 5006,
+  JOB_NO_CREDITS_OR_NOT_OFFLINE = 5007,
 
   // Token related codes
   TOKEN_INVALID_ROLE = 6000,
@@ -46,7 +46,10 @@ enum V2HttpErrorCodes {
 
   // Distance
   DISTANCE_INVALID_POINTS = 8000,
-  DISTANCE_MUST_BE_FLOAT  = 8001
+  DISTANCE_MUST_BE_FLOAT  = 8001,
+
+  // File related?
+  JOB_NO_IMAGE_FILE_PROVIDED = 9000,
 }
 
 export default V2HttpErrorCodes

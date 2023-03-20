@@ -1,4 +1,5 @@
 import Schema from '../../base/Schema'
+import { V2JobStatus } from '../../types/v2/db/Job'
 
 class V2JobSchema extends Schema {
   public static tableName = 'v2_jobs'
@@ -13,7 +14,7 @@ class V2JobSchema extends Schema {
     this.table.tinyint('type', 1)
       .notNullable()
 
-    this.table.tinyint('status', 1)
+    this.table.tinyint('status', V2JobStatus.PROCESSED)
       .notNullable()
 
     this.table.binary('startPoint')

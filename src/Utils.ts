@@ -1,41 +1,33 @@
 import HttpServer from './base/HttpServer'
 import jsonwebtoken from 'jsonwebtoken'
-
-import { IEncryptedToken, IErrorCodes } from './types/Http'
+import { HttpReq, IEncryptedToken, IErrorCodes } from './types/Http'
 import {
   createCipheriv,
   createDecipheriv,
   createHash,
   randomBytes
 } from 'crypto'
-
 import { IAuthUser, INewUser } from './types/data'
 import HttpError from './base/HttpError'
-
 import { BASE_DELIVERY_FEE, DeliveryFees } from './types/v2/Fees'
 import IRateRider from './types/data/RateRider'
-
 import { IRider, IRiderStates } from './types/db'
 import Tables from './types/Tables'
-
 import { IJob, IJobTypes } from './types/db/Job'
 import { IDelivery } from './types/db/Delivery'
-
 import Bytes from './base/Bytes'
 import IJobOptions from './types/data/JobOptions'
-
 import UserUtils from './utils/User'
 import RiderUtils from './utils/Rider'
-
 import WsUtils from './utils/Ws'
 import WebSocket from 'ws'
-
-import { ProtocolSendTypes } from './types/v2/ws/Protocol'
+import { ProtocolSendTypes, ProtocolTypes, WsProtocol } from './types/v2/ws/Protocol'
 import V2JobOptions from './types/v2/Job'
 import { Geo } from './types/v2/Geo'
 import { V2Job, V2JobStatus } from './types/v2/db/Job'
 import V2HttpErrorCodes from './types/v2/http/Codes'
 import V2Address from './types/v2/db/Address'
+import busboy from 'busboy'
 
 class Utils {
   public user: UserUtils
@@ -48,6 +40,38 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public parseFile(req: HttpReq): Promise<Buffer> {
+    return new Promise(
+      (resolve, reject) => {
+        const bus = busboy(
+          { headers: req.headers }
+        )
+    
+        bus.on(
+            'file',
+            (_, stream) => {
+              let chunk: Buffer
+      
+              stream.on(
+                  'data',
+                  (data: Buffer) => {
+                    if (!chunk) chunk = data
+                    else chunk = Buffer.concat(
+                      [chunk, data]
+                    )
+                  }
+                )
+                .on('end', () => resolve(chunk))
+                .on('error', reject)
+            }
+          )
+          .on('error', reject)
+    
+        req.pipe(bus)
+      }
+    )
   }
 
   public calculateDeliveryFee(distance: number | string) {
@@ -463,31 +487,12 @@ class Utils {
         ),
         item: other.item,
         weight: Number(other.weight),
-        draft,
+        draft: true, // make it always a draft
         ...distance
       }
 
     await this.server.db.table(Tables.v2.Jobs)
       .insert(data)
-
-    if (
-      this.server.config.ws.enabled &&
-      this.server.ws &&
-      this.server.ws.readyState === WebSocket.OPEN
-    )
-      this.server.utils.ws.send( // notify ws new job was made
-        {
-          c: ProtocolSendTypes.JOB_NEW,
-          d: {
-            uid,
-            geo: {
-              address: startPoint.uid,
-              latitude: startPoint.latitude,
-              longitude: startPoint.longitude
-            }
-          }
-        }
-      )
 
     return data
   }

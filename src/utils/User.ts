@@ -10,8 +10,8 @@ import V2HttpAddressData from '../types/v2/http/Address'
 import V2Address from '../types/v2/db/Address'
 import { Geo } from '../types/v2/Geo'
 import axios from 'axios'
-import { V2CalculateDistanceResult, V2CalculateDistanceSatus } from '../types/v2/http/CalculateDistance'
 import { V2Job } from '../types/v2/db/Job'
+import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 
 const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 
@@ -33,6 +33,29 @@ class UserUtils {
       .update(job)
       .where(
         { uid: job.uid }
+      )
+
+    const latitude = job.startPoint.readFloatLE(0),
+      longitude = job.startPoint.readFloatLE(4),
+      address = job.startPoint.toString('utf-8', 8)
+
+    if (
+      this.server.config.ws.enabled &&
+      this.server.ws &&
+      this.server.ws.readyState === WebSocket.OPEN
+    )
+      this.server.utils.ws.send( // notify ws new job was finalized
+        {
+          c: ProtocolSendTypes.JOB_NEW,
+          d: {
+            uid,
+            geo: {
+              address,
+              latitude,
+              longitude
+            }
+          }
+        }
       )
       
     return job

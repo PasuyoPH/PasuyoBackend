@@ -1,11 +1,11 @@
 import HttpError from '../../../base/HttpError'
 import Path from '../../../base/Path'
-import { IRoute } from '../../../types/Http'
 import { V2UserRoles } from '../../../types/v2/db/User'
 import V2HttpErrorCodes from '../../../types/v2/http/Codes'
 
-class GetJobs extends Path implements IRoute {
-  public path = '/v2/rider/jobs'
+// mark rider as online
+class V2SetOnline extends Path {
+  public path = '/v2/rider/online'
   public requireUserToken = true
 
   public async onRequest() {
@@ -16,10 +16,10 @@ class GetJobs extends Path implements IRoute {
       )
 
     return {
-      value: await this.server.utils.rider.getJobs(this.user.uid),
+      value: await this.server.utils.rider.setOnline(this.user.uid),
       code: 200
     }
   }
 }
 
-export default GetJobs
+export default V2SetOnline

@@ -27,6 +27,7 @@ interface V2User {
 
 interface V2Rider extends V2User {
   verified?: boolean
+  state?: V2RiderStates
 }
 
 export {
