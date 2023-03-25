@@ -1,10 +1,13 @@
+import V2Token from '../db/Token'
+import { V2RiderStates } from '../db/User'
 import { Geo } from '../Geo'
 
 enum ProtocolTypes {
   ERROR,
-  GET_ALL_LOCATIONS, // unused
-  GEO_UPDATE,
-  CLIENT_DISCONNECTED
+  CLIENT_DISCONNECTED,
+  RIDER_NEW_JOB,
+  ACCEPT_JOB,
+  CLIENT_INITIATED
 }
 
 interface WsErrorProtocol {
@@ -14,7 +17,7 @@ interface WsErrorProtocol {
     msg: string
   }
 }
-
+/*
 interface WsGeoUpdateProtocol {
   c: ProtocolTypes.GEO_UPDATE
   d: {
@@ -22,7 +25,11 @@ interface WsGeoUpdateProtocol {
     latitude: number
 
     uid: string
-  }
+ */
+
+interface WsAcceptJobProtocol {
+  c: ProtocolTypes.ACCEPT_JOB,
+  d: { rider: string, job: string }
 }
 
 interface WsClientDisconnectProtocol {
@@ -30,19 +37,22 @@ interface WsClientDisconnectProtocol {
   d: { uid: string }
 }
 
-type WsProtocol = WsErrorProtocol | WsGeoUpdateProtocol | WsClientDisconnectProtocol
+interface WsClientInitiatedProtocol {
+  c: ProtocolTypes.CLIENT_INITIATED
+  d: { uid: string }
+}
+
+type WsProtocol = WsErrorProtocol | WsClientDisconnectProtocol | WsAcceptJobProtocol | WsClientInitiatedProtocol
 
 // Send Protocol
 enum ProtocolSendTypes {
   INIT_RIDER,
   INIT_BACKEND,
-
   JOB_NEW,
-
   JOB_ACCEPT,
   JOB_DENY,
-
-  GET_ALL_AVAILABLE_RIDERS
+  RIDER_UPDATE_DATA,
+  BACKEND_RIDER_UPDATE_STATE
 }
 
 interface WsSendInitBackendProtocol {
@@ -57,25 +67,27 @@ interface WsSendJobToRidersProtocol {
     geo: {
       address: string // address id
     } & Geo
+    tokens: V2Token[] // list of expo tokens
   }
 }
 
-interface WsSendRequestAvailableRidersProtocol {
-  c: ProtocolSendTypes.GET_ALL_AVAILABLE_RIDERS
-  d: null
+interface WsSendBackendRiderUpdateState {
+  c: ProtocolSendTypes.BACKEND_RIDER_UPDATE_STATE
+  d: { uid: string, state: V2RiderStates }
 }
 
 type WsSendProtocol =
   WsSendInitBackendProtocol |
   WsSendJobToRidersProtocol |
-  WsSendRequestAvailableRidersProtocol
+  WsSendBackendRiderUpdateState
 
 export {
   ProtocolTypes,
   WsErrorProtocol,
 
-  WsGeoUpdateProtocol,
+  //WsGeoUpdateProtocol,
   WsClientDisconnectProtocol,
+  WsClientInitiatedProtocol,
 
   WsProtocol,
 
@@ -85,5 +97,5 @@ export {
   WsSendProtocol,
   WsSendJobToRidersProtocol,
 
-  WsSendRequestAvailableRidersProtocol
+  WsAcceptJobProtocol
 }

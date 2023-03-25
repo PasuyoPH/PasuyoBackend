@@ -1,4 +1,4 @@
-import HttpServer from '../../base/HttpServer'
+/*import HttpServer from '../../base/HttpServer'
 import { WsGeoUpdateProtocol } from '../../types/v2/ws/Protocol'
 
 class WsGeoUpdate {
@@ -16,4 +16,4 @@ class WsGeoUpdate {
   }
 }
 
-export default WsGeoUpdate
+export default WsGeoUpdate*/

@@ -26,7 +26,7 @@ class RiderUtils {
       .where({ uid })
   }
 
-  public async completeJob(file: Buffer, uid: string) {
+  public async completeJob(file: Buffer, uid: string, rider: string) {
     if (!file)
       throw new HttpError(
         V2HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
@@ -34,14 +34,40 @@ class RiderUtils {
       )
 
     // todo: upload to s3, and get url
-    await this.server.db.table<V2Job>(Tables.v2.Jobs)
-      .update(
-        {
-          status: V2JobStatus.DONE,
-          finishedAt: Date.now()
-        }
-      )
-      .where({ uid })
+    const fileHash = await this.server.utils.generateFileHash(file),
+      fileName = fileHash + '.jpg',
+      storageUrl = this.server.config.s3.storages.evidences.url,
+      fileUrl = storageUrl + '/' + fileName
+
+    // upload to s3 storage
+    await this.server.storages.evidences.putObject(
+      {
+        Bucket: 'sin1',
+        Key: fileName,
+        Body: file
+      }
+    )
+
+    await this.server.db.transaction(
+      async (trx) => {
+        await trx.table<V2Job>(Tables.v2.Jobs)
+          .update(
+            {
+              status: V2JobStatus.DONE,
+              finishedAt: Date.now(),
+              proof: fileUrl
+            }
+          )
+          .where({ uid })
+
+        const result = await trx.table<V2Rider>(Tables.v2.Riders)
+          .update({ state: V2RiderStates.RIDER_ONLINE })
+          .where({ uid: rider })
+
+        if (result > 0) // update to websocket
+          await this.server.utils.updateRiderState(rider, V2RiderStates.RIDER_ONLINE, true)
+      }
+    )
   }
 
   /*public async acceptJob(rider: V2Rider, uid: string) {
@@ -114,9 +140,15 @@ class RiderUtils {
     return job
   }*/
 
-  public async acceptJob(rider: V2Rider, uid: string) {
+  public async acceptJob(rider: V2Rider | string, uid: string) {
     const transaction = await this.server.db.transaction(
       async (trx) => {
+        if (typeof rider === 'string')
+          rider = await trx.table(Tables.v2.Riders)
+            .select('*')
+            .where({ uid: rider })
+            .first()
+    
         const job = await trx.table<V2Job>(Tables.v2.Jobs)
           .select('*')
           .where({ uid })
@@ -129,36 +161,47 @@ class RiderUtils {
             V2HttpErrorCodes.JOB_FAILED_TO_ACCEPT,
             'This job can\'t be accepted. It doesn\'t exist, or its status is not PROCESSED, or it already has a rider assigned.'
           )
+
+        if (job.draft)
+          throw new HttpError(
+            V2HttpErrorCodes.JOB_IS_DRAFT,
+            'This job is just a draft, you can\'t accept this.'
+          )
     
         const updatedRider = await trx.table(Tables.v2.Riders)
           .where(
             {
-              uid: rider.uid,
+              uid: (rider as V2Rider).uid,
               state: V2RiderStates.RIDER_ONLINE
             }
           )
           .where('credits', '>=', job.fee)
           .update(
             {
-              credits: rider.credits - job.fee,
+              credits: (rider as V2Rider).credits - job.fee,
               state: V2RiderStates.RIDER_UNAVAILABLE
             }
           )
           .returning('*')
-
-        console.log(updatedRider)
     
         if (!updatedRider[0])
           throw new HttpError(
             V2HttpErrorCodes.JOB_NO_CREDITS_OR_NOT_OFFLINE,
             'You do not have enough credits for this job, or your rider status is not ONLINE.'
           )
+        
+        // update websocket
+        await this.server.utils.updateRiderState(
+          (rider as V2Rider).uid,
+          V2RiderStates.RIDER_UNAVAILABLE,
+          true
+        )
     
         await trx.table(Tables.v2.Jobs)
           .where({ uid: job.uid })
           .update(
             {
-              rider: rider.uid,
+              rider: (rider as V2Rider).uid,
               status: V2JobStatus.ACCEPTED,
               startedAt: Date.now(),
             }
@@ -181,6 +224,7 @@ class RiderUtils {
     const jobs = (
       await this.server.db.table<V2Job>(Tables.v2.Jobs)
         .select('*')
+        .where('draft', false)
         .where(
           function() {
             this.where({ status: V2JobStatus.PROCESSED })

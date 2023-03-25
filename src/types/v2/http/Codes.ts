@@ -34,6 +34,7 @@ enum V2HttpErrorCodes {
   JOB_FAILED_TO_ACCEPT          = 5005,
   JOB_ALREADY_ACCEPTED          = 5006,
   JOB_NO_CREDITS_OR_NOT_OFFLINE = 5007,
+  JOB_IS_DRAFT                  = 5008,
 
   // Token related codes
   TOKEN_INVALID_ROLE = 6000,

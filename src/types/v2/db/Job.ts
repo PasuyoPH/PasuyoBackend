@@ -39,6 +39,8 @@ interface V2Job {
   // delivery
   item?: string
   weight?: number
+
+  proof?: string // url of proof
 }
 
 export {

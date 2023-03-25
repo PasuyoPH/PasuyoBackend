@@ -37,6 +37,22 @@ interface GoogleConfig {
   apikey: string
 }
 
+interface S3StorageData {
+  url: string
+}
+
+interface S3Storage {
+  [key: string]: S3StorageData
+}
+
+interface S3Config {
+  endpoint: string
+  accessKey: string
+  secretKey: string
+  region: string
+  storages: S3Storage
+}
+
 interface IConfig {
   http: IHttpConfig
   db: IDatabaseConfig
@@ -47,6 +63,7 @@ interface IConfig {
   maxMealsPerOrder: number
   ws: WebSocketConfig
   google: GoogleConfig
+  s3: S3Config
 }
 
 export {

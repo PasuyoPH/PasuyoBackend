@@ -8,7 +8,8 @@ const Tables = {
     Users: 'v2_users',
     Riders: 'v2_riders',
     Address: 'v2_address',
-    Jobs: 'v2_jobs'
+    Jobs: 'v2_jobs',
+    Tokens: 'v2_tokens'
   }
 }
 

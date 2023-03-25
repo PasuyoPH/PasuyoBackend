@@ -39,11 +39,6 @@ class UserUtils {
       longitude = job.startPoint.readFloatLE(4),
       address = job.startPoint.toString('utf-8', 8)
 
-    if (
-      this.server.config.ws.enabled &&
-      this.server.ws &&
-      this.server.ws.readyState === WebSocket.OPEN
-    )
       this.server.utils.ws.send( // notify ws new job was finalized
         {
           c: ProtocolSendTypes.JOB_NEW,
@@ -53,7 +48,11 @@ class UserUtils {
               address,
               latitude,
               longitude
-            }
+            },
+            tokens: (
+              await this.server.db.table(Tables.v2.Tokens)
+                .select('*')
+            )
           }
         }
       )
@@ -96,7 +95,7 @@ class UserUtils {
           ...user,
           ...(
             rider ? {
-              state: V2RiderStates.RIDER_UNAVAILABLE,
+              state: V2RiderStates.RIDER_ONLINE,
               verified: false
             } : {}
           ),
@@ -206,7 +205,6 @@ class UserUtils {
       {
         uid: user.uid,
         pin,
-
         role: data.rider ? V2UserRoles.RIDER : V2UserRoles.CUSTOMER
       },
       86400

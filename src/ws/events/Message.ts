@@ -13,12 +13,20 @@ class MessageEvent {
       const packet = JSON.parse(string) as WsProtocol
 
       switch (packet.c) {
-        case ProtocolTypes.GEO_UPDATE:
+        /*case ProtocolTypes.GEO_UPDATE:
           this.server.utils.ws.protocols.geoUpdate.handle(packet)
-          break
+          break*/
 
         case ProtocolTypes.CLIENT_DISCONNECTED:
-          this.server.utils.ws.protocols.clientDisconnect.handle(packet)
+          await this.server.utils.ws.protocols.clientDisconnect.handle(packet)
+          break
+
+        case ProtocolTypes.ACCEPT_JOB: // protocol to accept job
+          await this.server.utils.ws.protocols.acceptJob.handle(packet)
+          break
+
+        case ProtocolTypes.CLIENT_INITIATED:
+          await this.server.utils.ws.protocols.clientInitiated.handle(packet)
           break
 
         default:

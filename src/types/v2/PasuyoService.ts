@@ -1,3 +1,5 @@
+import { V2JobTypes } from './db/Job'
+
 enum PasuyoFormTypes {
   INPUT,
   SELECT_ADDRESS
@@ -31,6 +33,8 @@ interface PasuyoService {
 
   displayLabel: string
   displaySubLabel?: string
+  
+  type?: V2JobTypes
 }
 
 const Services: PasuyoService[] = [
@@ -66,7 +70,9 @@ const Services: PasuyoService[] = [
     usePages: false,
 
     displayLabel: 'Pa Deliver',
-    displaySubLabel: 'Pa deliver kana!'
+    displaySubLabel: 'Pa deliver kana!',
+
+    type: V2JobTypes.PADELIVER
   },
 
   {

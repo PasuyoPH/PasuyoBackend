@@ -4,14 +4,18 @@ import HttpServer from '../base/HttpServer'
 import { WsSendProtocol } from '../types/v2/ws/Protocol'
 import WebSocket from 'ws'
 
-import WsGeoUpdate from '../ws/protocol/GeoUpdate'
+//import WsGeoUpdate from '../ws/protocol/GeoUpdate'
 import WsClientDisconnect from '../ws/protocol/ClientDisconnect'
+import WsAcceptJob from '../ws/protocol/AcceptJob'
+import WsClientInitiated from '../ws/protocol/ClientInitiated'
 
 class WsUtils {
   public hash: string
   public protocols: {
-    geoUpdate: WsGeoUpdate
+    //geoUpdate: WsGeoUpdate
     clientDisconnect: WsClientDisconnect
+    acceptJob: WsAcceptJob
+    clientInitiated: WsClientInitiated
   }
 
   public gps: Map<
@@ -21,8 +25,10 @@ class WsUtils {
 
   constructor(public server: HttpServer) {
     this.protocols = {
-      geoUpdate: new WsGeoUpdate(this.server),
-      clientDisconnect: new WsClientDisconnect(this.server)
+      //geoUpdate: new WsGeoUpdate(this.server),
+      clientDisconnect: new WsClientDisconnect(this.server),
+      acceptJob: new WsAcceptJob(this.server),
+      clientInitiated: new WsClientInitiated(this.server)
     }
   }
 

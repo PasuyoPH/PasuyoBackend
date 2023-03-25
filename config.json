@@ -45,5 +45,17 @@
 
   "google": {
     "apikey": "AIzaSyDzy3Xj37GQ75J4cdcb29eqMRlvNVVIg0w"
+  },
+
+  "s3": {
+    "endpoint": "https://contabostorage.com",
+    "accessKey": "a0113f1c1bf08a3b8391045a5efe4f01",
+    "secretKey": "b4903c2b5a7dac3239fbeac924a74f7c",
+    "region": "sin",
+    "storages": {
+      "evidences": {
+        "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:evidences"
+      }
+    }
   }
 }

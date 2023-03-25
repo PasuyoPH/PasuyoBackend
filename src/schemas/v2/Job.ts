@@ -46,6 +46,8 @@ class V2JobSchema extends Schema {
     // delivery
     this.table.text('item')
     this.table.double('weight')
+    
+    this.table.text('proof') // url of proof
   }
 }
 

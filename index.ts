@@ -43,6 +43,8 @@ import V2FinalizeJob from './src/routes/v2/job/Finalize'
 import V2GetAddressesById from './src/routes/v2/address/GetAddressesById'
 import V2AcceptJob from './src/routes/v2/job/Accept'
 import V2CompeleteJob from './src/routes/v2/job/Complete'
+import V2SetToken from './src/routes/v2/SetToken'
+import V2DeleteToken from './src/routes/v2/DeleteToken'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -97,6 +99,8 @@ const main = async () => {
   await http.register(V2GetAddressesById)
   await http.register(V2AcceptJob)
   await http.register(V2CompeleteJob)
+  await http.register(V2SetToken)
+  await http.register(V2DeleteToken)
 
   try {
     await http.ready()

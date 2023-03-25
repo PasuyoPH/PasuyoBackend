@@ -14,6 +14,9 @@ import MessageEvent from '../ws/events/Message'
 import { GeoCacheData } from '../types/v2/Geo'
 
 import CloseEvent from '../ws/events/Close'
+import Expo from 'expo-server-sdk'
+import { S3 } from '@aws-sdk/client-s3'
+import Storages from '../types/v2/Storages'
 
 // Schemas
 import CustomerSchema from '../schemas/Customer'
@@ -28,23 +31,22 @@ import JobSchema from '../schemas/Job'
 import { V2RiderSchema, V2UserSchema } from '../schemas/v2/User'
 import V2AddressSchema from '../schemas/v2/Address'
 import V2JobSchema from '../schemas/v2/Job'
+import V2TokensSchema from '../schemas/v2/Tokens'
 
 class HttpServer {
   public restana = restana()
   public routes: Map<string, Path> = new Map()
-
   public PROCESS_CWD = process.cwd()
   public utils = new Utils(this)
-
   public cache = {
     ttl: 5, // in minutes
     data: new Map<string, { expiry: number, data: Buffer } | undefined>() // cache url reponses instead
   }
-
   public db: Knex<any, unknown[]>
   public ws: WebSocket
-
   public geo: Map<string, GeoCacheData> = new Map()
+  public expo = new Expo()
+  public storages: Storages
 
   constructor(public config: IConfig) {
     this.db = knex(
@@ -66,6 +68,31 @@ class HttpServer {
       this.setupWebsocket()
 
     this.setupDatabase()
+    this.storages = {
+      evidences: new S3(
+        this.generateS3Config('evidences')
+      )
+    }    
+  
+    // for testing purposes
+    /*this.storages.evidences.putObject(
+      {
+        Bucket: 'sin1',
+        Body: Buffer.from('TESTING 123'),
+        Key: 'test.txt'
+      }
+    )*/
+  }
+
+  private generateS3Config(bucket: string) {
+    return {
+      region: this.config.s3.region,
+      endpoint: this.config.s3.endpoint + '/' + bucket,
+      credentials: {
+        accessKeyId: this.config.s3.accessKey,
+        secretAccessKey: this.config.s3.secretKey
+      }
+    }
   }
 
   public async setupWebsocket() {
@@ -105,7 +132,8 @@ class HttpServer {
         V2RiderSchema,
         V2UserSchema,
         V2AddressSchema,
-        V2JobSchema
+        V2JobSchema,
+        V2TokensSchema
       ],
       tables = [
         CustomerSchema,

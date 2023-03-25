@@ -20,14 +20,16 @@ import IJobOptions from './types/data/JobOptions'
 import UserUtils from './utils/User'
 import RiderUtils from './utils/Rider'
 import WsUtils from './utils/Ws'
-import WebSocket from 'ws'
-import { ProtocolSendTypes, ProtocolTypes, WsProtocol } from './types/v2/ws/Protocol'
+import { ProtocolSendTypes } from './types/v2/ws/Protocol'
 import V2JobOptions from './types/v2/Job'
 import { Geo } from './types/v2/Geo'
 import { V2Job, V2JobStatus } from './types/v2/db/Job'
 import V2HttpErrorCodes from './types/v2/http/Codes'
 import V2Address from './types/v2/db/Address'
 import busboy from 'busboy'
+import { Services } from './types/v2/PasuyoService'
+import V2Token from './types/v2/db/Token'
+import { V2RiderStates } from './types/v2/db/User'
 
 class Utils {
   public user: UserUtils
@@ -40,6 +42,43 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public async updateRiderState(uid: string, state: V2RiderStates, noDb?: boolean) {
+    if (!noDb)
+      await this.server.db.table(Tables.v2.Riders)
+        .update({ state })
+        .where({ uid })
+
+    // notify websocket that rider state changed
+    await this.server.utils.ws.send(
+      {
+        c: ProtocolSendTypes.BACKEND_RIDER_UPDATE_STATE,
+        d: { state, uid }
+      }
+    )
+  }
+
+  public async generateFileHash(content: Buffer) {
+    const hash = createHash('sha256')
+    hash.update(content)
+
+    return hash.digest('hex')
+  }
+
+  public async addExpoToken(token: string, rider: string) {
+    console.log('Set token:', token, rider)
+
+    return await this.server.db.table(Tables.v2.Tokens)
+      .insert({ token, rider })
+      .onConflict('token')
+      .merge()
+  }
+
+  public async deleteExpoToken(token: string, rider: string) {
+    return await this.server.db.table(Tables.v2.Tokens)
+      .delete('*')
+      .where({ token, rider })
   }
 
   public parseFile(req: HttpReq): Promise<Buffer> {
@@ -419,9 +458,23 @@ class Utils {
       .first()
   }
 
+  public async getExpoTokens(): Promise<V2Token[]> {
+    return await this.server.db.table(Tables.v2.Tokens)
+  }
+
   public async createJobV2(
     { creator, type, points, draft, ...other }: V2JobOptions
   ) {
+    const serviceFound = Services.find(
+      (service) => service.type === type
+    )
+
+    if (!serviceFound)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_INVALID_TYPE,
+        'Invalid job type was provided. Please make sure to place the correct values.'
+      )
+
     if (!points || points.length < 2)
       throw new HttpError(
         V2HttpErrorCodes.JOB_INVALID_POINTS,
@@ -438,14 +491,8 @@ class Utils {
       )
 
     if (
-      (
-        other.item &&
-        (
-          !other.weight ||
-          isNaN(other.weight as any)
-        )
-      ) ||
-      (other.weight && !other.item)
+      isNaN(other.weight as any) ||
+      typeof other.item !== 'string'
     )
       throw new HttpError(
         V2HttpErrorCodes.JOB_INVALID_DELIVERY,

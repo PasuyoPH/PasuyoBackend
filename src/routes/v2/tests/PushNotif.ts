@@ -4,20 +4,22 @@ import axios from 'axios'
 
 class V2TestPushNotif extends Path {
   public path = '/v2/tests/pushnotif/:expoPushToken'
+  //public adminOnly = true
 
-  public async onRequest(req: HttpReq) {
-    const url = 'https://exp.host/--/api/v2/push/send'
-    axios(
-      {
-        method: 'post',
-        url,
-        data: {
+  public async onRequest(req: HttpReq) {    
+    await this.server.expo.sendPushNotificationsAsync(
+      [
+        {
           to: req.params.expoPushToken ?? '',
           channelId: 'default',
-          title: 'Pasuyo Test Notification',
-          body: 'This notificaiton is just for testing only. #PasuyoKana'
+          title: 'New Order!',
+          body: 'A new order has arrived.',
+          categoryId: 'new_job',
+          data: {
+            jobID: 'TEST_JOB_ID'
+          }
         }
-      }
+      ]
     )
 
     return { code: 200 }

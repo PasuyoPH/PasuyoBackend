@@ -3,6 +3,7 @@ import Path from '../../../base/Path'
 import { HttpReq } from '../../../types/Http'
 import { V2UserRoles } from '../../../types/v2/db/User'
 import V2HttpErrorCodes from '../../../types/v2/http/Codes'
+import { writeFile } from 'fs/promises'
 
 class V2CompeleteJob extends Path {
   public path = '/v2/jobs/:uid/complete'
@@ -19,7 +20,11 @@ class V2CompeleteJob extends Path {
 
     // parse the image file to receive
     const result = await this.server.utils.parseFile(req)
-    await this.server.utils.rider.completeJob(result, req.params.uid) // mark the job as complete
+    await this.server.utils.rider.completeJob( // mark the job as complete
+      result,
+      req.params.uid,
+      this.user.uid
+    )
 
     return {
       value: null,
