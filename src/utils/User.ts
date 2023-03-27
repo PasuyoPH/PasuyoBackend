@@ -92,6 +92,7 @@ class UserUtils {
                   `${Tables.v2.Tokens}.rider`
                 )
                 .where(`${Tables.v2.Riders}.verified`, '=', true)
+                .where(`${Tables.v2.Riders}.credits`, '>=', job.fee)
             )
           }
         }
