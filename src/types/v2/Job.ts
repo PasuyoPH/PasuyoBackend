@@ -1,5 +1,4 @@
 import { V2JobTypes } from './db/Job'
-import { Geo } from './Geo'
 
 interface V2JobOptions {
   creator: string

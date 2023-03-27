@@ -23,6 +23,8 @@ interface V2User {
 
   referral?: string
   credits?: number
+  
+  profile?: string
 }
 
 interface V2Rider extends V2User {

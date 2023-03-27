@@ -45,6 +45,9 @@ import V2AcceptJob from './src/routes/v2/job/Accept'
 import V2CompeleteJob from './src/routes/v2/job/Complete'
 import V2SetToken from './src/routes/v2/SetToken'
 import V2DeleteToken from './src/routes/v2/DeleteToken'
+import V2GetCurrentJob from './src/routes/v2/rider/Job'
+import V2UpdateStatus from './src/routes/v2/job/UpdateStatus'
+import V2UpdateProfile from './src/routes/v2/user/UpdateProfile'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -101,6 +104,9 @@ const main = async () => {
   await http.register(V2CompeleteJob)
   await http.register(V2SetToken)
   await http.register(V2DeleteToken)
+  await http.register(V2GetCurrentJob)
+  await http.register(V2UpdateStatus)
+  await http.register(V2UpdateProfile)
 
   try {
     await http.ready()

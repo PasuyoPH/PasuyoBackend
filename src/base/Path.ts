@@ -16,6 +16,7 @@ import axios from 'axios'
 import { URLSearchParams } from 'url'
 
 import { V2Rider, V2User } from '../types/v2/db/User'
+import V2HttpErrorCodes from '../types/v2/http/Codes'
 
 class Path implements IRoute {
   public path   = '/'
@@ -34,6 +35,7 @@ class Path implements IRoute {
   public token: string = null
 
   public user: V2Rider | V2User = null
+  public mustBeVerifiedRider = false
 
   private clean(data: IPathReturnObject | ICustomError) {
     return this.server.config.http.cleanedJsonResponses ?
@@ -123,6 +125,22 @@ class Path implements IRoute {
               this.clean(result)
             )
           } else {
+            if (
+              this.mustBeVerifiedRider &&
+              !user.verified
+            ) {
+              const result = {
+                error: true,
+                message: 'This route requires the user to be a verified rider.',
+                code: V2HttpErrorCodes.RIDER_NOT_VERIFIED
+              }
+              res.statusCode = 400
+
+              return res.send(
+                this.clean(result)
+              )
+            }
+            
             this.token = token
             this.user  = user
           }

@@ -13,7 +13,12 @@ interface V2HttpUserData {
   rider: boolean
 }
 
+interface V2HttpUpdateUser {
+  profile?: string
+}
+
 export {
   V2HttpUser,
-  V2HttpUserData
+  V2HttpUserData,
+  V2HttpUpdateUser
 }

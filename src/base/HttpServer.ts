@@ -71,6 +71,9 @@ class HttpServer {
     this.storages = {
       evidences: new S3(
         this.generateS3Config('evidences')
+      ),
+      profiles: new S3(
+        this.generateS3Config('profiles')
       )
     }    
   

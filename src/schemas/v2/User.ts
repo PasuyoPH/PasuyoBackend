@@ -30,6 +30,8 @@ class V2UserSchema extends Schema {
     this.table.bigInteger('credits')
       .notNullable()
       .defaultTo(0)
+
+    this.table.text('profile')
   }
 }
 

@@ -51,6 +51,10 @@ enum V2HttpErrorCodes {
 
   // File related?
   JOB_NO_IMAGE_FILE_PROVIDED = 9000,
+
+  // Update job
+  JOB_UPDATE_INVALID_STATUS = 10000,
+  JOB_UPDATE_FAILED         = 10001,  
 }
 
 export default V2HttpErrorCodes

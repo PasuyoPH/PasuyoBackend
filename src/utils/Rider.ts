@@ -8,6 +8,40 @@ import V2HttpErrorCodes from '../types/v2/http/Codes'
 class RiderUtils {
   constructor(public server: HttpServer) {}
 
+  public async updateJobStatus(
+    rider: string,
+    uid: string,
+    status: V2JobStatus
+  ) {
+    const least = V2JobStatus.CANCELLED,
+      highest = V2JobStatus.DONE
+
+    if (
+      typeof status !== 'number' ||
+      status <= least ||
+      status >= highest
+    )
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_UPDATE_INVALID_STATUS,
+        'Invalid job status was provided. Please try again.'
+      )
+
+    const job = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .update({ status })
+      .where({ uid })
+      .where('status', '<', status)
+      .returning('*')
+      .first()
+
+    if (!job)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_UPDATE_FAILED,
+        'Job update failed. Either job doesn\'t exist, or invalid status was provided. Please try again.'
+      )
+    
+    return job
+  }
+
   public async getAddressesById(ids: string[]) {
     return await this.server.db.table(Tables.v2.Address)
       .select('*')
@@ -33,7 +67,6 @@ class RiderUtils {
         'Please provide a proper image file.'
       )
 
-    // todo: upload to s3, and get url
     const fileHash = await this.server.utils.generateFileHash(file),
       fileName = fileHash + '.jpg',
       storageUrl = this.server.config.s3.storages.evidences.url,
@@ -212,6 +245,17 @@ class RiderUtils {
     )
   
     return transaction
+  }
+
+  public async getRiderJob(rider: string) {
+    return await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where({ rider })
+      .whereNotIn(
+        'status',
+        [V2JobStatus.CANCELLED, V2JobStatus.DONE]
+      )
+      .first()
   }
 
   /**

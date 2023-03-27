@@ -1,7 +1,7 @@
 {
   "http": {
     "port": 8080,
-    "cleanedJsonResponses": true,
+    "cleanedJsonResponses": false,
 
     "base": "/api"
   },
@@ -55,6 +55,9 @@
     "storages": {
       "evidences": {
         "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:evidences"
+      },
+      "profiles": {
+        "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:profiles"
       }
     }
   }

@@ -18,6 +18,39 @@ const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 class UserUtils {
   constructor(public server: HttpServer) {}
 
+  public async updateProfile(
+    uid: string,
+    rider: boolean, // flag whether user is rider
+    file: Buffer
+  ) {
+    if (!file)
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
+        'Please provide a proper image file.'
+      )
+    
+    const fileHash = await this.server.utils.generateFileHash(file),
+      fileName = fileHash + '.jpg',
+      storageUrl = this.server.config.s3.storages.profiles.url,
+      fileUrl = storageUrl + '/' + uid + '/' + fileName
+
+    // upload to s3 storage
+    await this.server.storages.profiles.putObject(
+      {
+        Bucket: 'sin1',
+        Key: uid + '/' + fileName,
+        Body: file
+      }
+    )
+
+    return (
+      await this.server.db.table<V2User>(rider ? Tables.v2.Riders : Tables.v2.Users)
+        .update({ profile: fileUrl })
+        .where({ uid })
+        .returning('*')
+    )[0]
+  }
+
   public async finalizeJob(user: string, uid: string) {
     const job = (
       await this.server.db.table(Tables.v2.Jobs)
@@ -52,6 +85,13 @@ class UserUtils {
             tokens: (
               await this.server.db.table(Tables.v2.Tokens)
                 .select('*')
+                .join(
+                  Tables.v2.Riders,
+                  `${Tables.v2.Riders}.uid`,
+                  '=',
+                  `${Tables.v2.Tokens}.rider`
+                )
+                .where(`${Tables.v2.Riders}.verified`, '=', true)
             )
           }
         }
@@ -77,7 +117,7 @@ class UserUtils {
 
     if (
       !user.pin ||
-      user.pin.length !== 4 ||
+      user.pin.length < 4 ||
       !user.pin.match(/[0-9]/g)
     )
       throw new HttpError(

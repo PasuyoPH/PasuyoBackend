@@ -254,7 +254,7 @@ class Utils {
 
     if (
       !data.pin ||
-      data.pin.length !== 4 ||
+      data.pin.length < 4 ||
       !data.pin.match(/[0-9]/g)
     )
       throw new HttpError(
