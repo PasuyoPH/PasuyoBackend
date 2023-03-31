@@ -31,7 +31,7 @@ import JobSchema from '../schemas/Job'
 import { V2RiderSchema, V2UserSchema } from '../schemas/v2/User'
 import V2AddressSchema from '../schemas/v2/Address'
 import V2JobSchema from '../schemas/v2/Job'
-import V2TokensSchema from '../schemas/v2/Tokens'
+import V2TokensSchema, { V2UserTokensSchema } from '../schemas/v2/Tokens'
 
 class HttpServer {
   public restana = restana()
@@ -136,7 +136,8 @@ class HttpServer {
         V2UserSchema,
         V2AddressSchema,
         V2JobSchema,
-        V2TokensSchema
+        V2TokensSchema,
+        V2UserTokensSchema
       ],
       tables = [
         CustomerSchema,

@@ -15,8 +15,9 @@ enum V2HttpErrorCodes {
   DELIVERY_INVALID_ITEM = 2001,
 
   // Rider related codes
-  RIDER_NOT_VERIFIED = 3000,
-  USER_NOT_RIDER     = 3001,
+  RIDER_NOT_VERIFIED       = 3000,
+  USER_NOT_RIDER           = 3001,
+  RIDER_UPDATE_GEO_INVALID = 3002,
 
   // Rating related codes
   RATING_RATE_INVALID        = 4000,

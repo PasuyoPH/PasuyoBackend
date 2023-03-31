@@ -3,4 +3,10 @@ interface V2Token {
   rider: string
 }
 
+interface V2UserToken {
+  token: string
+  user: string
+}
+
 export default V2Token
+export { V2UserToken }

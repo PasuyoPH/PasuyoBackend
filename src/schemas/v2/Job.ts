@@ -16,6 +16,9 @@ class V2JobSchema extends Schema {
 
     this.table.tinyint('status', V2JobStatus.PROCESSED)
       .notNullable()
+    
+    this.table.bigInteger('createdAt')
+      .notNullable()
 
     this.table.binary('startPoint')
       .notNullable()

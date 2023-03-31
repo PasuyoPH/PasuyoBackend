@@ -17,6 +17,7 @@ interface V2Job {
   rider?: string
   type: V2JobTypes
   status: V2JobStatus
+  createdAt: number
   
   // location related
   startPoint: Buffer

@@ -13,4 +13,18 @@ class V2TokensSchema extends Schema {
   }
 }
 
+class V2UserTokensSchema extends Schema {
+  public static tableName = 'v2_user_tokens'
+
+  public async handle() {
+    this.table.text('token')
+      .unique()
+      .notNullable()
+
+    this.table.string('user', 32)
+      .notNullable()
+  }
+}
+
 export default V2TokensSchema
+export { V2UserTokensSchema }

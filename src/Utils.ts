@@ -45,10 +45,14 @@ class Utils {
   }
 
   public async updateRiderState(uid: string, state: V2RiderStates, noDb?: boolean) {
-    if (!noDb)
-      await this.server.db.table(Tables.v2.Riders)
+    if (!noDb) {
+      const users = await this.server.db.table(Tables.v2.Riders)
         .update({ state })
         .where({ uid })
+        .returning('*')
+
+      await this.server.utils.user.updateUserToWs(users[0])
+    }
 
     // notify websocket that rider state changed
     await this.server.utils.ws.send(
@@ -66,11 +70,16 @@ class Utils {
     return hash.digest('hex')
   }
 
-  public async addExpoToken(token: string, rider: string) {
-    console.log('Set token:', token, rider)
+  public async addExpoToken(token: string, uid: string, isRider?: boolean) {
+    console.log('Set token:', token, uid)
 
-    return await this.server.db.table(Tables.v2.Tokens)
-      .insert({ token, rider })
+    return await this.server.db.table(isRider ? Tables.v2.Tokens : Tables.v2.UserTokens)
+      .insert(
+        {
+          token,
+          [isRider ? 'rider' : 'user']: uid
+        }
+      )
       .onConflict('token')
       .merge()
   }
@@ -518,6 +527,7 @@ class Utils {
         creator,
         type,
         status: V2JobStatus.PROCESSED,
+        createdAt: Date.now(),
         startPoint: await this.pointsToBuffer(
           {
             uid: startPoint.uid,

@@ -32,7 +32,7 @@ class WsUtils {
     }
   }
 
-  public send(data: WsSendProtocol): Promise<Error | undefined> {
+  public send(data: WsSendProtocol): Promise<Error | WsSendProtocol> {
     return new Promise(
       (resolve, reject) => {
         if (!this.server.ws) return reject(
@@ -45,7 +45,7 @@ class WsUtils {
             content,
             (err) => err ? reject(err) : resolve(undefined)
           )
-        else resolve(undefined)
+        else resolve(data)
       }
     )
   }

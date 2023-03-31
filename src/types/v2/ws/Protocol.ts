@@ -1,5 +1,5 @@
 import V2Token from '../db/Token'
-import { V2RiderStates } from '../db/User'
+import { V2RiderStates, V2User } from '../db/User'
 import { Geo } from '../Geo'
 
 enum ProtocolTypes {
@@ -52,7 +52,20 @@ enum ProtocolSendTypes {
   JOB_ACCEPT,
   JOB_DENY,
   RIDER_UPDATE_DATA,
-  BACKEND_RIDER_UPDATE_STATE
+  BACKEND_RIDER_UPDATE_STATE,
+  BACKEND_RIDER_UPDATE_GEO,
+  APP_UPDATE_USER_DATA,
+  DE_INIT_RIDER
+}
+
+interface WsSendAppUpdateUserDataProtocol {
+  c: ProtocolSendTypes.APP_UPDATE_USER_DATA
+  d: V2User
+}
+
+interface WsSendBackendRiderUpdateGeo {
+  c: ProtocolSendTypes.BACKEND_RIDER_UPDATE_GEO
+  d: { uid: string, geo: Geo }
 }
 
 interface WsSendInitBackendProtocol {
@@ -79,7 +92,9 @@ interface WsSendBackendRiderUpdateState {
 type WsSendProtocol =
   WsSendInitBackendProtocol |
   WsSendJobToRidersProtocol |
-  WsSendBackendRiderUpdateState
+  WsSendBackendRiderUpdateState |
+  WsSendBackendRiderUpdateGeo |
+  WsSendAppUpdateUserDataProtocol
 
 export {
   ProtocolTypes,
@@ -97,5 +112,7 @@ export {
   WsSendProtocol,
   WsSendJobToRidersProtocol,
 
-  WsAcceptJobProtocol
+  WsAcceptJobProtocol,
+  WsSendBackendRiderUpdateGeo,
+  WsSendAppUpdateUserDataProtocol
 }

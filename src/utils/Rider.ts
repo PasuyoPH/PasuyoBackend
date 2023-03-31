@@ -3,10 +3,36 @@ import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
 import { V2Job, V2JobStatus } from '../types/v2/db/Job'
 import { V2Rider, V2RiderStates } from '../types/v2/db/User'
+import { Geo } from '../types/v2/Geo'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
+import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 
 class RiderUtils {
   constructor(public server: HttpServer) {}
+  
+  public async updateRiderGeo(
+    rider: string,
+    geo: Geo
+  ) {
+    if (
+      typeof geo?.latitude !== 'number' ||
+      typeof geo?.longitude !== 'number'
+    )
+      throw new HttpError(
+        V2HttpErrorCodes.RIDER_UPDATE_GEO_INVALID,
+        'Invalid geo location provided.'
+      )
+
+    console.log('RIDER UPDATE LOCATION:', rider, geo)
+
+    // send to websocket
+    return await this.server.utils.ws.send(
+      {
+        c: ProtocolSendTypes.BACKEND_RIDER_UPDATE_GEO,
+        d: { uid: rider, geo }
+      }
+    )
+  }
 
   public async updateJobStatus(
     rider: string,
@@ -31,15 +57,14 @@ class RiderUtils {
       .where({ uid })
       .where('status', '<', status)
       .returning('*')
-      .first()
 
-    if (!job)
+    if (!job[0])
       throw new HttpError(
         V2HttpErrorCodes.JOB_UPDATE_FAILED,
         'Job update failed. Either job doesn\'t exist, or invalid status was provided. Please try again.'
       )
     
-    return job
+    return job[0]
   }
 
   public async getAddressesById(ids: string[]) {
@@ -96,9 +121,12 @@ class RiderUtils {
         const result = await trx.table<V2Rider>(Tables.v2.Riders)
           .update({ state: V2RiderStates.RIDER_ONLINE })
           .where({ uid: rider })
+          .returning('*')
 
-        if (result > 0) // update to websocket
+        if (result.length > 0) { // update to websocket
           await this.server.utils.updateRiderState(rider, V2RiderStates.RIDER_ONLINE, true)
+          await this.server.utils.user.updateUserToWs(result[0])
+        }
       }
     )
   }
@@ -201,7 +229,7 @@ class RiderUtils {
             'This job is just a draft, you can\'t accept this.'
           )
     
-        const updatedRider = await trx.table(Tables.v2.Riders)
+        const updatedRider = await trx.table<V2Rider>(Tables.v2.Riders)
           .where(
             {
               uid: (rider as V2Rider).uid,
@@ -229,6 +257,26 @@ class RiderUtils {
           V2RiderStates.RIDER_UNAVAILABLE,
           true
         )
+
+        await this.server.utils.user.updateUserToWs(updatedRider[0])
+        
+        const tokens = await this.server.db.table(Tables.v2.UserTokens)
+          .select('*')
+          .where({ user: job.creator })
+
+        if (tokens.length >= 1)
+          await this.server.expo.sendPushNotificationsAsync(
+            tokens.map(
+              (token) => (
+                {
+                  to: token,
+                  channelId: 'default',
+                  title: 'Order Accepted',
+                  body: `${(rider as V2Rider).fullName} accepted your {JOB_NAME} for {JOB_ITEM?}.`
+                }
+              )
+            )
+          )
     
         await trx.table(Tables.v2.Jobs)
           .where({ uid: job.uid })

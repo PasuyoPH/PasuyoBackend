@@ -43,12 +43,28 @@ class UserUtils {
       }
     )
 
-    return (
+    const result = (
       await this.server.db.table<V2User>(rider ? Tables.v2.Riders : Tables.v2.Users)
         .update({ profile: fileUrl })
         .where({ uid })
         .returning('*')
     )[0]
+
+    if (rider && result)
+      await this.updateUserToWs(result)
+
+    return result
+  }
+
+  public async updateUserToWs(user: V2User) {
+    console.log('Update:', user)
+
+    return await this.server.utils.ws.send(
+      {
+        c: ProtocolSendTypes.APP_UPDATE_USER_DATA,
+        d: user
+      }
+    )
   }
 
   public async finalizeJob(user: string, uid: string) {
@@ -104,7 +120,7 @@ class UserUtils {
   public async create(
     { user, rider }: V2CreateUserOptions
   ) {
-    if (!user.fullName || user.fullName.length < 2)
+    if (!user.fullName || user.fullName.length < 1)
       throw new HttpError(
         V2HttpErrorCodes.AUTH_INVALID_NAME,
         'Please provide a proper name.'
@@ -123,7 +139,7 @@ class UserUtils {
     )
       throw new HttpError(
         V2HttpErrorCodes.AUTH_INVALID_PIN,
-        'Please provide a proper pin code.'
+        'Please make sure the pin code is valid and has a minimum length of 4.'
       )
 
     if (!user.phone.startsWith('0'))
