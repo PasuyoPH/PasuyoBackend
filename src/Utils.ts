@@ -23,7 +23,7 @@ import WsUtils from './utils/Ws'
 import { ProtocolSendTypes } from './types/v2/ws/Protocol'
 import V2JobOptions from './types/v2/Job'
 import { Geo } from './types/v2/Geo'
-import { V2Job, V2JobStatus } from './types/v2/db/Job'
+import { V2Job, V2JobStatus, V2JobTypeAsText, V2JobTypes } from './types/v2/db/Job'
 import V2HttpErrorCodes from './types/v2/http/Codes'
 import V2Address from './types/v2/db/Address'
 import busboy from 'busboy'
@@ -42,6 +42,23 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public async jobInfoToText(job: V2Job) {
+    const name = V2JobTypeAsText[job.type] ?? 'Unknown Job'
+    let data: string
+
+    switch (job.type) {
+      case V2JobTypes.PADELIVER:
+        data = job.item
+        break
+
+      default:
+        data = 'Unknown?'
+        break
+    }
+
+    return { name, data }
   }
 
   public async updateRiderState(uid: string, state: V2RiderStates, noDb?: boolean) {
@@ -130,7 +147,7 @@ class Utils {
       distance = parseInt(distance)
 
     const nearest = DeliveryFees.filter(
-        (fee) => fee.distance <= distance
+        (fee) => fee.distance <= (distance as number)
       )
       .sort(
         ((a, b) => b.distance - a.distance)

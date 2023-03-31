@@ -264,7 +264,9 @@ class RiderUtils {
           .select('*')
           .where({ user: job.creator })
 
-        if (tokens.length >= 1)
+        if (tokens.length >= 1) {
+          const jobInfoAsText = await this.server.utils.jobInfoToText(job)
+
           await this.server.expo.sendPushNotificationsAsync(
             tokens.map(
               (token) => (
@@ -272,11 +274,12 @@ class RiderUtils {
                   to: token,
                   channelId: 'default',
                   title: 'Order Accepted',
-                  body: `${(rider as V2Rider).fullName} accepted your {JOB_NAME} for {JOB_ITEM?}.`
+                  body: `${(rider as V2Rider).fullName} accepted your ${jobInfoAsText.name} of ${jobInfoAsText.data}`
                 }
               )
             )
           )
+        }
     
         await trx.table(Tables.v2.Jobs)
           .where({ uid: job.uid })

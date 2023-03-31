@@ -3,6 +3,17 @@ enum V2JobTypes {
   PAUTOS
 }
 
+const V2JobStatusAsText = [
+    'Pending',
+    'Accepted',
+    'Picked Up',
+    'Done'
+  ],
+  V2JobTypeAsText = [
+    'Delivery',
+    'Utos'
+  ]
+
 enum V2JobStatus {
   PROCESSED,
   ACCEPTED,
@@ -48,5 +59,7 @@ export {
   V2JobTypes,
   V2JobStatus,
 
-  V2Job
+  V2Job,
+  V2JobStatusAsText,
+  V2JobTypeAsText
 }
