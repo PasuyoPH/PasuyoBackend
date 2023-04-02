@@ -4,8 +4,7 @@ import {
   HttpRes,
   PathReturnable,
   IPathReturnObject,
-  ICustomError,
-  IErrorCodes
+  ICustomError
 } from '../types/Http'
 import HttpServer from './HttpServer'
 
@@ -116,7 +115,7 @@ class Path implements IRoute {
             const result = {
               error: true,
               message: 'User token provided is either invalid or expired.',
-              code: IErrorCodes.AUTH_INVALID_TKN,
+              code: V2HttpErrorCodes.AUTH_INVALID_TKN,
               userTokenInvalid: true
             }
             res.statusCode = 400
@@ -261,7 +260,7 @@ It's possible that No onRequest function was found for this route.`
               this.clean(
                 {
                   error: true,
-                  code: IErrorCodes.INVALID_FIELDS,
+                  code: V2HttpErrorCodes.INVALID_FIELDS,
     
                   message: 'Invalid fields provided.'
                 }

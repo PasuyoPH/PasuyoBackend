@@ -1,6 +1,6 @@
 import HttpServer from './base/HttpServer'
 import jsonwebtoken from 'jsonwebtoken'
-import { HttpReq, IEncryptedToken, IErrorCodes } from './types/Http'
+import { HttpReq, IEncryptedToken } from './types/Http'
 import {
   createCipheriv,
   createDecipheriv,
@@ -101,10 +101,15 @@ class Utils {
       .merge()
   }
 
-  public async deleteExpoToken(token: string, rider: string) {
-    return await this.server.db.table(Tables.v2.Tokens)
+  public async deleteExpoToken(token: string, uid: string, isRider: boolean) {
+    return await this.server.db.table(isRider ? Tables.v2.Tokens : Tables.v2.UserTokens)
       .delete('*')
-      .where({ token, rider })
+      .where(
+        {
+          token,
+          [isRider ? 'rider' : 'user']: uid
+        }
+      )
   }
 
   public parseFile(req: HttpReq): Promise<Buffer> {
@@ -274,7 +279,7 @@ class Utils {
   public async createUser(data: INewUser, isRider: boolean = false) {
     if (!data.email?.match(/.+@.+\..+/g))
       throw new HttpError(
-        IErrorCodes.AUTH_INVALID_EMAIL,
+        V2HttpErrorCodes.AUTH_INVALID_EMAIL,
         'Please provide a proper email.'
       )
 
@@ -284,7 +289,7 @@ class Utils {
       !data.pin.match(/[0-9]/g)
     )
       throw new HttpError(
-        IErrorCodes.AUTH_INVALID_PIN,
+        V2HttpErrorCodes.AUTH_INVALID_PIN,
         'Please provide a proper pin code.'
       )
 
@@ -315,7 +320,7 @@ class Utils {
       switch (Number(err.code)) {
         case 23505: {
           throw new HttpError(
-            IErrorCodes.AUTH_DUPL,
+            V2HttpErrorCodes.AUTH_DUPL,
             'This email or phone number provided is already in use. Please try a different one.'
           )
         }
@@ -330,7 +335,7 @@ class Utils {
     const { phone, pin } = data
     /*if (!email?.match(/.+@.+\..+/g))
       throw new HttpError(
-        IErrorCodes.AUTH_INVALID_EMAIL,
+        V2HttpErrorCodes.AUTH_INVALID_EMAIL,
         'Please provide a proper email.'
       )*/
 
@@ -343,13 +348,13 @@ class Utils {
 
     if (!user)
       throw new HttpError(
-        IErrorCodes.AUTH_FAILED,
+        V2HttpErrorCodes.AUTH_FAILED,
         'No user found with this phone.'
       )
 
     if (user.pin !== pin)
       throw new HttpError(
-        IErrorCodes.AUTH_INVALID_PIN,
+        V2HttpErrorCodes.AUTH_INVALID_PIN,
         'Incorrect pin was provided. Please try again.'
       )
 
@@ -380,26 +385,26 @@ class Utils {
     const rider = await this.getRiderByID(riderID)
     if (!rider)
       throw new HttpError(
-        IErrorCodes.RATING_RIDER_CUSTOMER_ONLY,
+        V2HttpErrorCodes.RATING_RIDER_CUSTOMER_ONLY,
         'This rider does not exist. Please make sure you rate an existing rider.'
       )
 
     if (data.rating < 1 || data.rating > 5)
       throw new HttpError(
-        IErrorCodes.RATING_RATE_INVALID,
+        V2HttpErrorCodes.RATING_RATE_INVALID,
         'Rating invalid, please provide from 1-5.'
       )
 
     if (data.comment) {
       if (data.comment.length < 3)
         throw new HttpError(
-          IErrorCodes.RATING_COMMENT_TOO_SHORT,
+          V2HttpErrorCodes.RATING_COMMENT_TOO_SHORT,
           'Comment provided was too short, please try a little longer.'
         )
 
       if (data.comment.length > 300)
         throw new HttpError(
-          IErrorCodes.RATING_COMMENT_TOO_LONG,
+          V2HttpErrorCodes.RATING_COMMENT_TOO_LONG,
           'Comment provided was too long, please try a little shorter.'
         )
     }
@@ -439,14 +444,14 @@ class Utils {
 
     if (!data.item || data.item.length < 3)
       throw new HttpError(
-        IErrorCodes.DELIVERY_INVALID_ITEM,
+        V2HttpErrorCodes.DELIVERY_INVALID_ITEM,
         'Please provide a proper item for the service.'
       )
 
     for (const prop of props)
       if (!data.from[prop] || !data.to[prop])
         throw new HttpError(
-          IErrorCodes.DELIVERY_MISSING_DATA,
+          V2HttpErrorCodes.DELIVERY_MISSING_DATA,
           'Please complete the required data for delivery.'
         )
   }
@@ -638,7 +643,7 @@ class Utils {
 
       default: {
         throw new HttpError(
-          IErrorCodes.JOB_INVALID_TYPE,
+          V2HttpErrorCodes.JOB_INVALID_TYPE,
           'Job type not supported. Please try again.'
         )
       }

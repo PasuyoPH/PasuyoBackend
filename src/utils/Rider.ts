@@ -1,7 +1,7 @@
 import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
-import { V2Job, V2JobStatus } from '../types/v2/db/Job'
+import { V2Job, V2JobStatus, V2JobStatusAsText } from '../types/v2/db/Job'
 import { V2Rider, V2RiderStates } from '../types/v2/db/User'
 import { Geo } from '../types/v2/Geo'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
@@ -63,6 +63,27 @@ class RiderUtils {
         V2HttpErrorCodes.JOB_UPDATE_FAILED,
         'Job update failed. Either job doesn\'t exist, or invalid status was provided. Please try again.'
       )
+
+    const tokens = await this.server.db.table(Tables.v2.UserTokens)
+      .select('*')
+      .where({ user: job[0].creator })
+
+    if (tokens.length >= 1) {
+      const jobInfoAsText = await this.server.utils.jobInfoToText(job[0])
+
+      await this.server.expo.sendPushNotificationsAsync(
+        tokens.map(
+          (token) => (
+            {
+              to: token,
+              channelId: 'default',
+              title: 'Job Updated',
+              body: `${(rider as V2Rider).fullName} changed your ${jobInfoAsText.name} of ${jobInfoAsText.data} status to ${V2JobStatusAsText[job[0].status]}.`
+            }
+          )
+        )
+      )
+    }
     
     return job[0]
   }
@@ -201,6 +222,34 @@ class RiderUtils {
     return job
   }*/
 
+  public async getHistory(uid: string) {
+    const today = new Date(),
+      year = today.getFullYear(),
+      month = today.getMonth(),
+      day = today.getDate(),
+      startOfToday = new Date(year, month, day)
+        .getTime(),
+      endOfToday = new Date(year, month, day + 1)
+        .getTime(),
+      jobs = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+        .select(
+          'item',
+          'type',
+          'status',
+          'startedAt',
+          'fee'
+        )
+        .where(
+          {
+            rider: uid,
+            status: V2JobStatus.DONE,
+          }
+        )
+        .whereBetween('finishedAt', [startOfToday, endOfToday])
+
+    return jobs
+  }
+
   public async acceptJob(rider: V2Rider | string, uid: string) {
     const transaction = await this.server.db.transaction(
       async (trx) => {
@@ -229,21 +278,22 @@ class RiderUtils {
             'This job is just a draft, you can\'t accept this.'
           )
     
-        const updatedRider = await trx.table<V2Rider>(Tables.v2.Riders)
-          .where(
-            {
-              uid: (rider as V2Rider).uid,
-              state: V2RiderStates.RIDER_ONLINE
-            }
-          )
-          .where('credits', '>=', job.fee)
-          .update(
-            {
-              credits: (rider as V2Rider).credits - job.fee,
-              state: V2RiderStates.RIDER_UNAVAILABLE
-            }
-          )
-          .returning('*')
+        const fee = job.fee * .25,
+          updatedRider = await trx.table<V2Rider>(Tables.v2.Riders)
+            .where(
+              {
+                uid: (rider as V2Rider).uid,
+                state: V2RiderStates.RIDER_ONLINE
+              }
+            )
+            .where('credits', '>=', fee)
+            .update(
+              {
+                credits: (rider as V2Rider).credits - fee,
+                state: V2RiderStates.RIDER_UNAVAILABLE
+              }
+            )
+            .returning('*')
     
         if (!updatedRider[0])
           throw new HttpError(

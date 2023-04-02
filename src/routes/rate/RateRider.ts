@@ -4,9 +4,9 @@ import IRateRider from '../../types/data/RateRider'
 
 import {
   HttpReq,
-  IErrorCodes,
   IRoute
 } from '../../types/Http'
+import V2HttpErrorCodes from '../../types/v2/http/Codes'
 
 class RateRider extends Path implements IRoute {
   public path   = '/rate/:uid'
@@ -18,7 +18,7 @@ class RateRider extends Path implements IRoute {
     const data = req.body as unknown as IRateRider
     if (Object.hasOwn(this.user, 'verified'))
       throw new HttpError(
-        IErrorCodes.RATING_RIDER_CUSTOMER_ONLY,
+        V2HttpErrorCodes.RATING_RIDER_CUSTOMER_ONLY,
         'This route is for customers only. Riders are not allowed to send requests here.'
       )
 

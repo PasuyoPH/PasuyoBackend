@@ -49,6 +49,7 @@ import V2GetCurrentJob from './src/routes/v2/rider/Job'
 import V2UpdateStatus from './src/routes/v2/job/UpdateStatus'
 import V2UpdateProfile from './src/routes/v2/user/UpdateProfile'
 import V2SetGeo from './src/routes/v2/rider/SetGeo'
+import V2GetRiderHistory from './src/routes/v2/rider/History'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -109,6 +110,7 @@ const main = async () => {
   await http.register(V2UpdateStatus)
   await http.register(V2UpdateProfile)
   await http.register(V2SetGeo)
+  await http.register(V2GetRiderHistory)
 
   try {
     await http.ready()

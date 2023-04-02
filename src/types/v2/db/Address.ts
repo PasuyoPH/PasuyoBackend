@@ -2,12 +2,11 @@
 interface V2Address {
   uid?: string
   user?: string
-
   latitude?: number
   longitude?: number
-
   formattedAddress?: string // the text form of the address
   name?: string
+  note?: string
   
   // Additional data
   house?: string // house/floor/unit number

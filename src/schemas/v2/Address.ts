@@ -18,6 +18,9 @@ class V2AddressSchema extends Schema {
 
     this.table.text('formattedAddress')
       .notNullable()
+      
+    this.table.text('note')
+      .notNullable()
 
     // additional data
     this.table.text('house')

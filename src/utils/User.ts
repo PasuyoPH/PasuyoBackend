@@ -193,6 +193,15 @@ class UserUtils {
   }
 
   public async newAddress(user: string, data: V2HttpAddressData) {
+    if (
+      !data.note ||
+      data.note?.length < 5
+    )
+      throw new HttpError(
+        V2HttpErrorCodes.ADDRESS_INVALID_NOTE,
+        'Your address note is too short. Please make it longer.'
+      )
+    
     // validate
     if (
       typeof data.latitude !== 'number' ||
@@ -211,11 +220,11 @@ class UserUtils {
 
     if (
       typeof data.contactName !== 'string' ||
-      data.contactName.length < 3
+      data.contactName.length < 2
     )
       throw new HttpError(
         V2HttpErrorCodes.ADDRESS_INVALID_CONTACT_NAME,
-        'Invalid contact name provided.'
+        'Contact name is too short, please try again.'
       )
 
     if (isNaN(data.contactPhone as any))
