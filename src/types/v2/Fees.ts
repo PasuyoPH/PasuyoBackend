@@ -14,7 +14,15 @@ const DeliveryFees: DeliveryFeeData[] = [
 
 const BASE_DELIVERY_FEE = 25
 
+interface FeeData {
+  fee: number
+  distance: number
+  eta: number
+  riderFee?: number
+}
+
 export {
   DeliveryFees,
-  BASE_DELIVERY_FEE
+  BASE_DELIVERY_FEE,
+  FeeData
 }

@@ -53,6 +53,11 @@ interface S3Config {
   storages: S3Storage
 }
 
+interface XPConfig {
+  unitPerDistance: number
+  scale: number
+}
+
 interface IConfig {
   http: IHttpConfig
   db: IDatabaseConfig
@@ -64,6 +69,7 @@ interface IConfig {
   ws: WebSocketConfig
   google: GoogleConfig
   s3: S3Config
+  xp: XPConfig
 }
 
 export {

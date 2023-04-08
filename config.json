@@ -60,5 +60,10 @@
         "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:profiles"
       }
     }
+  },
+
+  "xp": {
+    "unitPerDistance": 5,
+    "scale": 0.65
   }
 }

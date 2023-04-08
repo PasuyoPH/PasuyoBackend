@@ -44,6 +44,34 @@ class Utils {
     this.ws    = new WsUtils(this.server)
   }
 
+  public async calculateXp(distance: number) {
+    return this.server.config.xp.unitPerDistance *
+      Math.pow(
+        distance,
+        this.server.config.xp.scale
+      )
+  }
+
+  public async jobLocationToIDs(points: Buffer) {
+    const floatSizes = 4 + 4, // auto skip this amount. longitude & latitude
+      uidSize = 32,
+      ids: string[] = []
+
+    let offset = 0 + floatSizes // start with the id already
+    while (offset < points.length) {
+      const uid = points.toString(
+        'utf-8',
+        offset,
+        offset + uidSize
+      )
+      
+      ids.push(uid)
+      offset += uidSize + floatSizes // move the offset
+    }
+
+    return ids
+  }
+
   public async jobInfoToText(job: V2Job) {
     const name = V2JobTypeAsText[job.type] ?? 'Unknown Job'
     let data: string
@@ -80,6 +108,28 @@ class Utils {
     )
   }
 
+  public async getJobSelectedFields(includeExtra?: boolean) {
+    return [
+      'createdAt',
+      'fee',
+      'distance',
+      'eta',
+      'item',
+      'status',
+      'type',
+      'uid',
+      'weight',
+      'rider',
+      'draft',
+      ...(
+        includeExtra ? [
+          'startedAt',
+          'finishedAt'
+        ] : []
+      )
+    ]
+  }
+
   public async generateFileHash(content: Buffer) {
     const hash = createHash('sha256')
     hash.update(content)
@@ -88,8 +138,6 @@ class Utils {
   }
 
   public async addExpoToken(token: string, uid: string, isRider?: boolean) {
-    console.log('Set token:', token, uid)
-
     return await this.server.db.table(isRider ? Tables.v2.Tokens : Tables.v2.UserTokens)
       .insert(
         {
@@ -567,6 +615,8 @@ class Utils {
         item: other.item,
         weight: Number(other.weight),
         draft: true, // make it always a draft
+        startX: startPoint.longitude,
+        startY: startPoint.latitude,
         ...distance
       }
 

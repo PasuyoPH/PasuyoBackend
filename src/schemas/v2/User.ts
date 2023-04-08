@@ -1,5 +1,5 @@
 import Schema from '../../base/Schema'
-import { V2RiderStates } from '../../types/v2/db/User'
+import { V2RiderRanks, V2RiderStates } from '../../types/v2/db/User'
 
 class V2UserSchema extends Schema {
   public static tableName = 'v2_users'
@@ -27,11 +27,13 @@ class V2UserSchema extends Schema {
     this.table.tinyint('role')
       .notNullable()
 
-    this.table.bigInteger('credits')
+    this.table.double('credits')
       .notNullable()
       .defaultTo(0)
 
     this.table.text('profile')
+    this.table.boolean('optInLocation')
+      .defaultTo(true)
   }
 }
 
@@ -45,6 +47,11 @@ class V2RiderSchema extends V2UserSchema {
       .notNullable()
 
     this.table.boolean('verified')
+    this.table.tinyint('rank')
+      .notNullable()
+      .defaultTo(V2RiderRanks.RANK_BRONZE)
+    this.table.double('xp')
+      .defaultTo(0)
   }
 }
 

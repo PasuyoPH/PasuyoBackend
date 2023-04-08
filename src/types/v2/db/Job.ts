@@ -22,6 +22,30 @@ enum V2JobStatus {
   CANCELLED = -1
 }
 
+interface V2JobMini {
+  uid: string
+  type: V2JobTypes
+  status: V2JobStatus
+  createdAt: number
+  fee: number
+  distance: number
+  eta: number
+  riderFee?: number // how much to detuct from their credits
+  rider?: string
+  draft?: boolean
+
+  // service specific data
+
+  // delivery
+  item?: string
+  weight?: number
+}
+
+interface V2JobMiniExtra extends V2JobMini {
+  startedAt?: number
+  finishedAt?: number
+}
+
 interface V2Job {
   uid: string
   creator: string
@@ -45,6 +69,7 @@ interface V2Job {
   distance: number
   fee: number
   eta: number
+  riderFee?: number
 
   // service specific data
 
@@ -53,6 +78,10 @@ interface V2Job {
   weight?: number
 
   proof?: string // url of proof
+
+  // other data for backend only
+  startX: number
+  startY: number
 }
 
 export {
@@ -61,5 +90,7 @@ export {
 
   V2Job,
   V2JobStatusAsText,
-  V2JobTypeAsText
+  V2JobTypeAsText,
+  V2JobMini,
+  V2JobMiniExtra
 }

@@ -30,7 +30,7 @@ class MessageEvent {
           break
 
         default:
-          console.log(packet)
+          await this.server.log('Unhandled packet:', packet)
           break
       }
     } catch {}

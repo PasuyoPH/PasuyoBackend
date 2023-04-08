@@ -6,7 +6,6 @@ class WsAcceptJob {
 
   public async handle(packet: WsAcceptJobProtocol) {
     if (!packet.d) return
-    console.log('accept:', packet.d)
     await this.server.utils.rider.acceptJob(packet.d.rider, packet.d.job)
   }
 }

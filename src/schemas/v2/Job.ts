@@ -28,8 +28,8 @@ class V2JobSchema extends Schema {
 
     this.table.binary('midPoints')
 
-    this.table.bigint('startedAt')
-    this.table.bigint('finishedAt')
+    this.table.bigInteger('startedAt')
+    this.table.bigInteger('finishedAt')
   
     this.table.text('other')
     this.table.boolean('showInList')
@@ -44,7 +44,13 @@ class V2JobSchema extends Schema {
     this.table.double('eta')
       .notNullable()
 
+    this.table.double('riderFee')
     // service specific data
+
+    this.table.double('startX')
+      .notNullable()
+    this.table.double('startY')
+      .notNullable()
     
     // delivery
     this.table.text('item')

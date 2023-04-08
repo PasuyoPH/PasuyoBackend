@@ -1,6 +1,7 @@
 import Path from '../../../base/Path'
 import { HttpReq } from '../../../types/Http'
 import { V2JobStatus } from '../../../types/v2/db/Job'
+import { V2Rider } from '../../../types/v2/db/User'
 
 class V2UpdateStatus extends Path {
   public path = '/v2/jobs/:uid'
@@ -14,7 +15,7 @@ class V2UpdateStatus extends Path {
       { status } = req.body as { status: V2JobStatus }
 
     return {
-      value: await this.server.utils.rider.updateJobStatus(this.user.uid, uid, status),
+      value: await this.server.utils.rider.updateJobStatus(this.user as V2Rider, uid, status),
       code: 200
     }
   }

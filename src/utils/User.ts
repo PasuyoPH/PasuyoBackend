@@ -12,6 +12,7 @@ import { Geo } from '../types/v2/Geo'
 import axios from 'axios'
 import { V2Job } from '../types/v2/db/Job'
 import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
+import { FeeData } from '../types/v2/Fees'
 
 const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 
@@ -57,8 +58,6 @@ class UserUtils {
   }
 
   public async updateUserToWs(user: V2User) {
-    console.log('Update:', user)
-
     return await this.server.utils.ws.send(
       {
         c: ProtocolSendTypes.APP_UPDATE_USER_DATA,
@@ -109,6 +108,7 @@ class UserUtils {
                 )
                 .where(`${Tables.v2.Riders}.verified`, '=', true)
                 .where(`${Tables.v2.Riders}.credits`, '>=', job.fee)
+                .where(`${Tables.v2.Riders}.optInLocation`, '=', true)
             )
           }
         }
@@ -317,13 +317,7 @@ class UserUtils {
     return result > 0
   }
 
-  public async calculateDistance(points: Geo[]): Promise<
-    {
-      fee: number
-      distance: number
-      eta: number
-    }
-  > {    
+  public async calculateDistance(points: Geo[], rider?: V2Rider) {    
     if (!Array.isArray(points) || points.length < 2)
       throw new HttpError(
         V2HttpErrorCodes.DISTANCE_INVALID_POINTS,
@@ -354,8 +348,6 @@ class UserUtils {
     )
     params.append('key', this.server.config.google.apikey)
 
-    console.log(params)
-
     const { data } = await axios(
         {
           method: 'get',
@@ -372,13 +364,17 @@ class UserUtils {
       totalSeconds += result.duration?.value ?? 0
     }
 
+    const fee = this.server.utils.calculateDeliveryFeeV2(totalMeters / 1000)
     return {
-      fee: this.server.utils.calculateDeliveryFeeV2(totalMeters / 1000),
+      fee,
       distance: Math.round(
         (totalMeters / 1000) * 10
       ) / 10, // km
-      eta: totalSeconds // seconds
-    }
+      eta: totalSeconds, // seconds
+      riderFee: rider ?
+        fee * await this.server.utils.rider.getRiderRate(rider)
+        : null
+    } as FeeData
   }
 }
 

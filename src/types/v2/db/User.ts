@@ -27,14 +27,26 @@ interface V2User {
   profile?: string
 }
 
+enum V2RiderRanks {
+  RANK_BRONZE,
+  RANK_GOLD,
+  RANK_PLATINUM,
+  RANK_DIAMOND,
+  RANK_BLACK_DIAMOND
+}
+
 interface V2Rider extends V2User {
   verified?: boolean
-  state?: V2RiderStates
+  state: V2RiderStates
+  rank: V2RiderRanks
+  xp: number // unused value for now
+  optInLocation: boolean
 }
 
 export {
   V2Rider,
   V2RiderStates,
+  V2RiderRanks,
 
   V2User,
   V2UserRoles

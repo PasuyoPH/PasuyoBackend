@@ -50,6 +50,11 @@ import V2UpdateStatus from './src/routes/v2/job/UpdateStatus'
 import V2UpdateProfile from './src/routes/v2/user/UpdateProfile'
 import V2SetGeo from './src/routes/v2/rider/SetGeo'
 import V2GetRiderHistory from './src/routes/v2/rider/History'
+import V2GetJob from './src/routes/v2/job/GetJob'
+import V2GetJobAddress from './src/routes/v2/job/Address'
+import V2ViewJobs from './src/routes/v2/rider/ViewJobs'
+import V2GetRiderFee from './src/routes/v2/job/GetRiderFee'
+import V2OptInLocation from './src/routes/v2/rider/OptInLocation'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -89,6 +94,7 @@ const main = async () => {
   await http.register(GetCustomerJobs)
 
   // v2
+  await http.register(V2GetRiderFee)
   await http.register(V2AuthCreate)
   await http.register(V2GetJobs)
   await http.register(V2GetAddresses)
@@ -111,6 +117,10 @@ const main = async () => {
   await http.register(V2UpdateProfile)
   await http.register(V2SetGeo)
   await http.register(V2GetRiderHistory)
+  await http.register(V2GetJob)
+  await http.register(V2GetJobAddress)
+  await http.register(V2ViewJobs)
+  await http.register(V2OptInLocation)
 
   try {
     await http.ready()

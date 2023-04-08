@@ -1,14 +1,126 @@
 import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
-import { V2Job, V2JobStatus, V2JobStatusAsText } from '../types/v2/db/Job'
+import V2Address from '../types/v2/db/Address'
+import { V2Job, V2JobMini, V2JobMiniExtra, V2JobStatus, V2JobStatusAsText } from '../types/v2/db/Job'
 import { V2Rider, V2RiderStates } from '../types/v2/db/User'
 import { Geo } from '../types/v2/Geo'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
+import { DEFAULT_INCOME_RATE, IncomeRates } from '../types/v2/Rates'
 import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 
 class RiderUtils {
   constructor(public server: HttpServer) {}
+
+  public async setOptIn(uid: string, status: boolean) {
+    const result = (
+      await this.server.db.table<V2Rider>(Tables.v2.Riders)
+        .update({ optInLocation: status })
+        .where({ uid })
+        .returning('*')
+    )[0]
+
+    await this.server.utils.user.updateUserToWs(result)
+    return result
+  }
+
+  public async calculateRiderFee(uid: string, rider: V2Rider) {
+    const job = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('fee')
+      .where({ uid })
+      .first(),
+      rate = await this.getRiderRate(rider)
+
+    return (job?.fee ?? 0) * rate
+  }
+
+  public async getRiderRate(rider: V2Rider) {
+    return IncomeRates[rider.rank ?? 0] ?? DEFAULT_INCOME_RATE
+  }
+
+  public async getJobAddresses(uid: string) {
+    const job = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select(
+        'startPoint',
+        'midPoints',
+        'finalPoint'
+      )
+      .where({ uid })
+      .first()
+
+    if (!job) return []
+    const ids = await this.server.utils.jobLocationToIDs(
+      Buffer.concat(
+        [
+          Buffer.from(job.startPoint),
+          Buffer.from(job.midPoints ?? []),
+          Buffer.from(job.finalPoint)
+        ]
+      )
+    )
+
+    const result = await this.server.db.table<V2Address>(Tables.v2.Address)
+      .select(
+        'uid',
+        'formattedAddress',
+        'house',
+        'name'
+      )
+      .whereIn('uid', ids)
+
+    return ids.map(
+      (id) => result.find(
+        (address) => address.uid === id
+      )
+    )
+  }
+
+  public async viewJobs(
+    rider: string,
+    latitude: number,
+    longitude: number,
+    includeExtra?: boolean
+  ) {
+    const selectedFields = await this.server.utils.getJobSelectedFields(includeExtra)
+
+    // queries
+    const nearestJobsQuery = this.server.db.table<V2JobMini | V2JobMiniExtra>(Tables.v2.Jobs)
+      .select(selectedFields)
+      .where({ status: V2JobStatus.PROCESSED })
+      .orderByRaw(
+        `ST_DistanceSphere(
+          ST_MakePoint("startX", "startY"),
+          ST_MakePoint(:longitude, :latitude)
+        ) ASC`,
+        {
+          latitude,
+          longitude
+        }
+      )
+      .limit(5), // first 5 only
+      jobsByDateQuery = this.server.db.table<V2JobMini | V2JobMiniExtra>(Tables.v2.Jobs)
+        .select(selectedFields)
+        .where(
+          (firstBuilder) => firstBuilder.where({ status: V2JobStatus.PROCESSED })
+            .orWhere(
+              (secondBuilder) => secondBuilder.where({ rider })
+                .whereNotIn(
+                  'status',
+                  [
+                    V2JobStatus.PROCESSED,
+                    V2JobStatus.DONE
+                  ]
+                )
+            )
+        )
+        .orderBy('createdAt', 'desc')
+
+    const [available, nearest] = await Promise.all(
+      [jobsByDateQuery, nearestJobsQuery]
+    )
+
+    return { available, nearest }
+  }
   
   public async updateRiderGeo(
     rider: string,
@@ -23,8 +135,6 @@ class RiderUtils {
         'Invalid geo location provided.'
       )
 
-    console.log('RIDER UPDATE LOCATION:', rider, geo)
-
     // send to websocket
     return await this.server.utils.ws.send(
       {
@@ -35,7 +145,7 @@ class RiderUtils {
   }
 
   public async updateJobStatus(
-    rider: string,
+    rider: V2Rider,
     uid: string,
     status: V2JobStatus
   ) {
@@ -75,10 +185,10 @@ class RiderUtils {
         tokens.map(
           (token) => (
             {
-              to: token,
+              to: token.token,
               channelId: 'default',
               title: 'Job Updated',
-              body: `${(rider as V2Rider).fullName} changed your ${jobInfoAsText.name} of ${jobInfoAsText.data} status to ${V2JobStatusAsText[job[0].status]}.`
+              body: `${rider.fullName} changed your ${jobInfoAsText.name} of ${jobInfoAsText.data} status to ${V2JobStatusAsText[job[0].status]}.`
             }
           )
         )
@@ -150,6 +260,18 @@ class RiderUtils {
         }
       }
     )
+  }
+
+  public async getJob(uid: string) {
+    return await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where(
+        {
+          draft: false, // ignore drafts
+          uid
+        }
+      )
+      .first()
   }
 
   /*public async acceptJob(rider: V2Rider, uid: string) {
@@ -237,7 +359,9 @@ class RiderUtils {
           'type',
           'status',
           'startedAt',
-          'fee'
+          'fee',
+          'createdAt',
+          'riderFee'
         )
         .where(
           {
@@ -278,7 +402,7 @@ class RiderUtils {
             'This job is just a draft, you can\'t accept this.'
           )
     
-        const fee = job.fee * .25,
+        const fee = job.fee * await this.getRiderRate(rider as V2Rider),
           updatedRider = await trx.table<V2Rider>(Tables.v2.Riders)
             .where(
               {
@@ -309,7 +433,6 @@ class RiderUtils {
         )
 
         await this.server.utils.user.updateUserToWs(updatedRider[0])
-        
         const tokens = await this.server.db.table(Tables.v2.UserTokens)
           .select('*')
           .where({ user: job.creator })
@@ -321,7 +444,7 @@ class RiderUtils {
             tokens.map(
               (token) => (
                 {
-                  to: token,
+                  to: token.token,
                   channelId: 'default',
                   title: 'Order Accepted',
                   body: `${(rider as V2Rider).fullName} accepted your ${jobInfoAsText.name} of ${jobInfoAsText.data}`
@@ -338,6 +461,7 @@ class RiderUtils {
               rider: (rider as V2Rider).uid,
               status: V2JobStatus.ACCEPTED,
               startedAt: Date.now(),
+              riderFee: fee
             }
           )
     
