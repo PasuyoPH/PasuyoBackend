@@ -55,6 +55,7 @@ import V2GetJobAddress from './src/routes/v2/job/Address'
 import V2ViewJobs from './src/routes/v2/rider/ViewJobs'
 import V2GetRiderFee from './src/routes/v2/job/GetRiderFee'
 import V2OptInLocation from './src/routes/v2/rider/OptInLocation'
+import V2DeleteJob from './src/routes/v2/job/DeleteJob'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -121,6 +122,7 @@ const main = async () => {
   await http.register(V2GetJobAddress)
   await http.register(V2ViewJobs)
   await http.register(V2OptInLocation)
+  await http.register(V2DeleteJob)
 
   try {
     await http.ready()

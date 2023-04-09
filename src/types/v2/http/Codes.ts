@@ -3,12 +3,13 @@ enum V2HttpErrorCodes {
   INVALID_FIELDS = 900,
 
   // Auth Related error codes
-  AUTH_DUPL          = 1000,
-  AUTH_FAILED        = 1001,
-  AUTH_INVALID_PIN   = 1002,
-  AUTH_INVALID_NAME  = 1003,
-  AUTH_INVALID_TKN   = 1004,
-  AUTH_INVALID_EMAIL = 1005,
+  AUTH_DUPL               = 1000,
+  AUTH_FAILED             = 1001,
+  AUTH_INVALID_PIN        = 1002,
+  AUTH_INVALID_NAME       = 1003,
+  AUTH_INVALID_TKN        = 1004,
+  AUTH_INVALID_EMAIL      = 1005,
+  AUTH_REFERRAL_NOT_EXIST = 1006,
 
   // Delivery Related error codes
   DELIVERY_MISSING_DATA = 2000,
@@ -46,10 +47,12 @@ enum V2HttpErrorCodes {
   ADDRESS_INVALID_CONTACT_NAME      = 7002,
   ADDRESS_IVNALID_CONTACT_PHONE     = 7003,
   ADDRESS_INVALID_NOTE              = 7004,
+  ADDRESS_CANT_DELETE               = 7005,
 
   // Distance
   DISTANCE_INVALID_POINTS = 8000,
   DISTANCE_MUST_BE_FLOAT  = 8001,
+  DISTANCE_CANT_FIND_PATH = 8002,
 
   // File related?
   JOB_NO_IMAGE_FILE_PROVIDED = 9000,

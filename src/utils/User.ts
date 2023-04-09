@@ -10,14 +10,23 @@ import V2HttpAddressData from '../types/v2/http/Address'
 import V2Address from '../types/v2/db/Address'
 import { Geo } from '../types/v2/Geo'
 import axios from 'axios'
-import { V2Job } from '../types/v2/db/Job'
+import { V2Job, V2JobStatus } from '../types/v2/db/Job'
 import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 import { FeeData } from '../types/v2/Fees'
+import V2Referral from '../types/v2/db/Referral'
 
 const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 
 class UserUtils {
   constructor(public server: HttpServer) {}
+  
+  public async deleteJob(user: string, uid: string, draft?: boolean) {
+    const result = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .delete()
+      .where({ uid, creator: user, draft })
+
+    return result > 0
+  }
 
   public async updateProfile(
     uid: string,
@@ -142,12 +151,30 @@ class UserUtils {
         'Please make sure the pin code is valid and has a minimum length of 4.'
       )
 
+    // referral code checks
+    if (!rider && user.referral) { // for users only
+      const referral = await this.server.db.table<V2Referral>(Tables.v2.Referral)
+        .select('*')
+        .where({ code: user.referral.toLowerCase() })
+        .first()
+      
+      if (
+        user.referral.toLocaleLowerCase() !== 'pasuyo' &&
+        !referral
+      ) // fake referral code?!?!
+        throw new HttpError(
+          V2HttpErrorCodes.AUTH_REFERRAL_NOT_EXIST,
+          'This referral code does not exist. Please make sure you place the correct one, or use our own: pasuyo'
+        )
+    }
+    
     if (!user.phone.startsWith('0'))
       user.phone = '0' + user.phone
 
     try {
       const role = rider ? V2UserRoles.RIDER : V2UserRoles.CUSTOMER,
         uid = await this.server.utils.genUID(),
+        code = await this.server.utils.genUID(4),
         data: V2User | V2Rider = {
           ...user,
           ...(
@@ -172,6 +199,17 @@ class UserUtils {
       
       await this.server.db.table(rider ? Tables.v2.Riders : Tables.v2.Users)
         .insert(data)
+
+      // save the user's referral own code
+      if (!rider)
+        await this.server.db.table<V2Referral>(Tables.v2.Referral)
+          .insert(
+            {
+              code,
+              user: uid,
+              createdAt: Date.now()
+            }
+          )
 
       return token
     } catch(err) {
@@ -251,7 +289,11 @@ class UserUtils {
     const user = await this.server.db.table(data.rider ? Tables.v2.Riders : Tables.v2.Users)
       .select('*')
       .where(
-        { phone: phone.startsWith('0') ? phone : '0' + phone }
+        {
+          phone: (phone ?? '').startsWith('0') ?
+            phone :
+            '0' + phone
+        }
       )
       .first()
 
@@ -310,6 +352,33 @@ class UserUtils {
   }
 
   public async deleteAddress(user: string, uid: string) {
+    const jobsByUser = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select(
+        'startPoint',
+        'midPoints',
+        'finalPoint'
+      )
+      .where({ creator: user })
+      .whereNotIn('status', [V2JobStatus.DONE])
+
+    // filter jobs if they are using the address
+    for (const job of jobsByUser) {
+      const startUid = job.startPoint.slice(8)
+        .toString(),
+        finalUid = job.finalPoint.slice(8)
+          .toString(),
+        midPointsUid = job.midPoints?.toString() ?? '',
+        hasMatch = startUid === uid ||
+          finalUid === uid ||
+          midPointsUid.search(uid) >= 0
+
+      if (hasMatch)
+        throw new HttpError(
+          V2HttpErrorCodes.ADDRESS_CANT_DELETE,
+          'This address can\'t be deleted, as it\'s currently being used on a job.'
+        )
+    }
+
     const result = await this.server.db.table(Tables.v2.Address)
       .delete()
       .where({ user, uid })
@@ -355,6 +424,12 @@ class UserUtils {
         }
       ),
       results = data.rows[0].elements
+
+    if (results[0] && results[0].status === 'ZERO_RESULTS')
+      throw new HttpError(
+        V2HttpErrorCodes.DISTANCE_CANT_FIND_PATH,
+        'Can\'t find a proper path for this route.'
+      )
 
     let totalMeters = 0,
       totalSeconds = 0
