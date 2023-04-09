@@ -86,7 +86,12 @@ class RiderUtils {
     // queries
     const nearestJobsQuery = this.server.db.table<V2JobMini | V2JobMiniExtra>(Tables.v2.Jobs)
       .select(selectedFields)
-      .where({ status: V2JobStatus.PROCESSED })
+      .where(
+        {
+          status: V2JobStatus.PROCESSED,
+          draft: false
+        }
+      )
       .orderByRaw(
         `ST_DistanceSphere(
           ST_MakePoint("startX", "startY"),
@@ -101,7 +106,12 @@ class RiderUtils {
       jobsByDateQuery = this.server.db.table<V2JobMini | V2JobMiniExtra>(Tables.v2.Jobs)
         .select(selectedFields)
         .where(
-          (firstBuilder) => firstBuilder.where({ status: V2JobStatus.PROCESSED })
+          (firstBuilder) => firstBuilder.where(
+              {
+                status: V2JobStatus.PROCESSED,
+                draft: false
+              }
+            )
             .orWhere(
               (secondBuilder) => secondBuilder.where({ rider })
                 .whereNotIn(
@@ -439,6 +449,7 @@ class RiderUtils {
 
         if (tokens.length >= 1) {
           const jobInfoAsText = await this.server.utils.jobInfoToText(job)
+          console.log('Tokens:', tokens)
 
           await this.server.expo.sendPushNotificationsAsync(
             tokens.map(
