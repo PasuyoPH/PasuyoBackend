@@ -249,7 +249,7 @@ class RiderUtils {
 
     await this.server.db.transaction(
       async (trx) => {
-        await trx.table<V2Job>(Tables.v2.Jobs)
+        const job = await trx.table<V2Job>(Tables.v2.Jobs)
           .update(
             {
               status: V2JobStatus.DONE,
@@ -258,11 +258,20 @@ class RiderUtils {
             }
           )
           .where({ uid })
-
-        const result = await trx.table<V2Rider>(Tables.v2.Riders)
-          .update({ state: V2RiderStates.RIDER_ONLINE })
-          .where({ uid: rider })
           .returning('*')
+          .first(),
+          xpAdded = await this.server.utils.calculateXp(job.distance),
+          result = await trx.table<V2Rider>(Tables.v2.Riders)
+            .update(
+              {
+                state: V2RiderStates.RIDER_ONLINE ,
+                xp: this.server.db.raw('xp + ?', [xpAdded])
+              }
+            )
+            .where({ uid: rider })
+            .returning('*')
+
+        console.log('Add Xp:', this.server.utils.calculateXp(job.distance))
 
         if (result.length > 0) { // update to websocket
           await this.server.utils.updateRiderState(rider, V2RiderStates.RIDER_ONLINE, true)
