@@ -14,11 +14,42 @@ import { V2Job, V2JobStatus } from '../types/v2/db/Job'
 import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 import { FeeData } from '../types/v2/Fees'
 import V2Referral from '../types/v2/db/Referral'
+import V2Notification from '../types/v2/db/Notification'
 
 const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 
 class UserUtils {
   constructor(public server: HttpServer) {}
+
+  public async deleteNotification(user: string, uid: string) {
+    const result = await this.server.db.table(Tables.v2.Notifications)
+      .delete()
+      .where({ user, uid })
+
+    return result >= 1
+  }
+
+  public async addNotification(user: string, title: string, body: string) {
+    const uid = await this.server.utils.genUID()
+
+    return await this.server.db.table<V2Notification>(Tables.v2.Notifications)
+      .insert(
+        {
+          uid,
+          user,
+          title: title ?? 'No title provided.',
+          body: body ?? 'No body provided.',
+          receivedAt: Date.now()
+        }
+      )
+      .returning('*')
+  }
+
+  public async getNotifications(user: string) {
+    return await this.server.db.table<V2Notification>(Tables.v2.Notifications)
+      .select('*')
+      .where({ user })
+  }
 
   public async getUser(uid: string) {
     const user = await this.server.db.table<V2User>(Tables.v2.Users)

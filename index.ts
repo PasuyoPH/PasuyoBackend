@@ -57,6 +57,9 @@ import V2GetRiderFee from './src/routes/v2/job/GetRiderFee'
 import V2OptInLocation from './src/routes/v2/rider/OptInLocation'
 import V2DeleteJob from './src/routes/v2/job/DeleteJob'
 import V2GetUser from './src/routes/v2/user/GetUser'
+import V2GetNotifications from './src/routes/v2/notifications/GetNotifications'
+import V2DeleteNotification from './src/routes/v2/notifications/DeleteNotification'
+import V2AddNotification from './src/routes/v2/notifications/AddNotification'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -125,6 +128,9 @@ const main = async () => {
   await http.register(V2OptInLocation)
   await http.register(V2DeleteJob)
   await http.register(V2GetUser)
+  await http.register(V2GetNotifications)
+  await http.register(V2DeleteNotification)
+  await http.register(V2AddNotification)
 
   try {
     await http.ready()

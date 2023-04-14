@@ -11,7 +11,8 @@ const Tables = {
     Jobs: 'v2_jobs',
     Tokens: 'v2_tokens',
     UserTokens: 'v2_user_tokens',
-    Referral: 'v2_codes'
+    Referral: 'v2_codes',
+    Notifications: 'v2_notifications'
   }
 }
 
