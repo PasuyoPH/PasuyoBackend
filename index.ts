@@ -60,6 +60,8 @@ import V2GetUser from './src/routes/v2/user/GetUser'
 import V2GetNotifications from './src/routes/v2/notifications/GetNotifications'
 import V2DeleteNotification from './src/routes/v2/notifications/DeleteNotification'
 import V2AddNotification from './src/routes/v2/notifications/AddNotification'
+import V2GetDrafts from './src/routes/v2/drafts/GetDrafts'
+import V2DeleteDraft from './src/routes/v2/drafts/DeleteDraft'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -131,6 +133,8 @@ const main = async () => {
   await http.register(V2GetNotifications)
   await http.register(V2DeleteNotification)
   await http.register(V2AddNotification)
+  await http.register(V2GetDrafts)
+  await http.register(V2DeleteDraft)
 
   try {
     await http.ready()
