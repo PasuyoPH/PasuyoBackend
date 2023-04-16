@@ -54,13 +54,13 @@
     "region": "sin",
     "storages": {
       "evidences": {
-        "url": "https://storage.pasuyo.express/evidences"
+        "url": "http://storage.pasuyo.express/evidences"
       },
       "profiles": {
-        "url": "https://storage.pasuyo.express/profiles"
+        "url": "http://storage.pasuyo.express/profiles"
       },
       "load": {
-        "url": "https://storage.pasuyo.express/load"
+        "url": "http://storage.pasuyo.express/load"
       }
     }
   },
