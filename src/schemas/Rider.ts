@@ -29,6 +29,8 @@ class RiderSchema extends Schema {
 
     this.table.tinyint('role')
       .notNullable()
+
+    this.table.text('id') // id url
   }
 }
 

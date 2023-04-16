@@ -62,6 +62,15 @@ import V2DeleteNotification from './src/routes/v2/notifications/DeleteNotificati
 import V2AddNotification from './src/routes/v2/notifications/AddNotification'
 import V2GetDrafts from './src/routes/v2/drafts/GetDrafts'
 import V2DeleteDraft from './src/routes/v2/drafts/DeleteDraft'
+import V2GetUserJobs from './src/routes/v2/user/GetJobs'
+import V2GetUserJob from './src/routes/v2/user/GetUserJob'
+import V2AdminVerifyToken from './src/routes/admin/VerifyToken'
+import V2GetLoadRequests from './src/routes/admin/GetLoadRequests'
+import V2ApproveCredits from './src/routes/admin/ApproveCredits'
+import V2RiderRequestLoad from './src/routes/v2/rider/RequestLoad'
+import V2RiderUploadID from './src/routes/v2/rider/UploadId'
+import V2VerifyRider from './src/routes/admin/VerifyRider'
+import V2AdminGetUnverifiedRiders from './src/routes/admin/GetUnverifiedRiders'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -129,12 +138,23 @@ const main = async () => {
   await http.register(V2ViewJobs)
   await http.register(V2OptInLocation)
   await http.register(V2DeleteJob)
+  await http.register(V2GetUserJobs)
+  await http.register(V2GetUserJob)
   await http.register(V2GetUser)
   await http.register(V2GetNotifications)
   await http.register(V2DeleteNotification)
   await http.register(V2AddNotification)
   await http.register(V2GetDrafts)
   await http.register(V2DeleteDraft)
+  await http.register(V2RiderRequestLoad)
+  await http.register(V2RiderUploadID)
+
+  // admin only
+  await http.register(V2AdminVerifyToken)
+  await http.register(V2GetLoadRequests)
+  await http.register(V2ApproveCredits)
+  await http.register(V2VerifyRider)
+  await http.register(V2AdminGetUnverifiedRiders)
 
   try {
     await http.ready()

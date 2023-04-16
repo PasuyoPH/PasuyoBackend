@@ -21,6 +21,30 @@ const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 class UserUtils {
   constructor(public server: HttpServer) {}
 
+  public async getUserJob(user: string, uid: string) {
+    return await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where(
+        {
+          creator: user,
+          uid,
+          draft: false
+        }
+      )
+      .first()
+  }
+
+  public async getJobs(uid: string) {
+    return await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where(
+        {
+          creator: uid,
+          draft: false
+        }
+      )
+  }
+
   public async deleteDraft(user: string, uid: string) {
     return await this.server.db.table(Tables.v2.Jobs)
       .delete()

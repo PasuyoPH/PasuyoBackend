@@ -14,16 +14,12 @@ enum V2UserRoles {
 interface V2User {
   uid?: string
   email?: string
-
   phone?: string
   fullName?: string
-
   pin?: string
   role?: V2UserRoles
-
   referral?: string
   credits?: number
-  
   profile?: string
 }
 
@@ -41,6 +37,7 @@ interface V2Rider extends V2User {
   rank: V2RiderRanks
   xp: number // unused value for now
   optInLocation: boolean
+  id?: string
 }
 
 export {

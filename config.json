@@ -34,7 +34,7 @@
   "jwt_secret": "jwt_secret",
 
   "ws": {
-    "port": 3000,
+    "port": 3030,
     "address": "127.0.0.1",
 
     "name": "pasuyo",
@@ -54,10 +54,13 @@
     "region": "sin",
     "storages": {
       "evidences": {
-        "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:evidences"
+        "url": "https://storage.pasuyo.express/evidences"
       },
       "profiles": {
-        "url": "https://sin1.contabostorage.com/55ddedb767a04e24a3476c12e59ad56d:profiles"
+        "url": "https://storage.pasuyo.express/profiles"
+      },
+      "load": {
+        "url": "https://storage.pasuyo.express/load"
       }
     }
   },

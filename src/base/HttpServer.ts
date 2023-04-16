@@ -34,6 +34,8 @@ import V2JobSchema from '../schemas/v2/Job'
 import V2TokensSchema, { V2UserTokensSchema } from '../schemas/v2/Tokens'
 import V2ReferralSchema from '../schemas/v2/Referrals'
 import V2NotificationsSchema from '../schemas/v2/Notifications'
+import V2TransactionSchema from '../schemas/v2/Transaction'
+import V2LoadRequestSchema from '../schemas/v2/LoadRequest'
 
 class HttpServer {
   public restana = restana()
@@ -76,6 +78,9 @@ class HttpServer {
       ),
       profiles: new S3(
         this.generateS3Config('profiles')
+      ),
+      load: new S3(
+        this.generateS3Config('load')
       )
     }    
   
@@ -141,7 +146,9 @@ class HttpServer {
         V2TokensSchema,
         V2UserTokensSchema,
         V2ReferralSchema,
-        V2NotificationsSchema
+        V2NotificationsSchema,
+        V2TransactionSchema,
+        V2LoadRequestSchema
       ],
       tables = [
         CustomerSchema,

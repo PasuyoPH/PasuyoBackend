@@ -29,7 +29,10 @@ import V2Address from './types/v2/db/Address'
 import busboy from 'busboy'
 import { Services } from './types/v2/PasuyoService'
 import V2Token from './types/v2/db/Token'
-import { V2RiderStates } from './types/v2/db/User'
+import { V2Rider, V2RiderStates } from './types/v2/db/User'
+import V2LoadRequest from './types/v2/db/LoadRequest'
+import { S3 } from '@aws-sdk/client-s3'
+import UploadFileOptions from './types/UploadFileOptions'
 
 class Utils {
   public user: UserUtils
@@ -42,6 +45,96 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public async uploadFile(options: UploadFileOptions) {
+    const bucket = this.server.storages[options.storage] as S3
+    if (!bucket) return
+
+    if (!Buffer.isBuffer(options?.file))
+      throw new HttpError(
+        V2HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
+        'Please provide a proper image.'
+      )
+
+    // calculate hash
+    const fileHash = await this.server.utils.generateFileHash(options.file),
+      storageUrl = this.server.config.s3.storages[options.storage].url,
+      filePath = (options.path ?? '') + (fileHash + '.jpg')
+
+    // upload to s3
+    await bucket.putObject(
+      {
+        Bucket: 'sin1',
+        Key: filePath,
+        Body: options.file
+      }
+    )
+
+    return storageUrl + filePath
+  }
+
+  public async verifyRider(rider: string) {
+    const result = (
+      await this.server.db.table<V2Rider>(Tables.v2.Riders)
+        .update({ verified: true })
+        .where({ uid: rider })
+        .returning('*')
+    )[0]
+    
+    if (result)
+      await this.server.utils.user.updateUserToWs(result)
+    
+    return result
+  }
+
+  public async approveLoad(uid: string, credits: number) {
+    if (typeof credits !== 'number') credits = Number(credits)
+    
+    if (isNaN(credits))
+      credits = 0.00
+
+    await this.server.db.transaction(
+      async (trx) => {
+        const loadRequest = await this.server.db.table<V2LoadRequest>(Tables.v2.LoadRequests)
+          .select('*')
+          .where({ uid })
+          .first()
+
+        if (loadRequest) {
+          // update rider credits
+          const result = await this.server.db.table<V2Rider>(Tables.v2.Riders)
+            .update(
+              {
+                credits: this.server.db.raw('credits + ?', [credits])
+              }
+            )
+            .where({ uid: loadRequest.rider })
+            .returning('*')
+          
+          if (result.length >= 1) // update to ws
+            await this.server.utils.user.updateUserToWs(result[0])
+
+          // delete load request
+          await this.server.db.table<V2LoadRequest>(Tables.v2.LoadRequests)
+            .delete()
+            .where({ uid })
+        }
+      }
+    )
+
+    
+  }
+
+  public async getLoadRequests() {
+    return await this.server.db.table<V2LoadRequest>(Tables.v2.LoadRequests)
+      .select('*')
+  }
+
+  public async getUnverifiedRiders() {
+    return await this.server.db.table<V2Rider>(Tables.v2.Riders)
+      .select('*')
+      .where({ verified: false })
   }
 
   public async calculateXp(distance: number) {

@@ -12,7 +12,9 @@ const Tables = {
     Tokens: 'v2_tokens',
     UserTokens: 'v2_user_tokens',
     Referral: 'v2_codes',
-    Notifications: 'v2_notifications'
+    Notifications: 'v2_notifications',
+    Transactions: 'v2_transactions',
+    LoadRequests: 'v2_loadrequests'
   }
 }
 

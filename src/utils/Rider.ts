@@ -3,6 +3,7 @@ import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
 import V2Address from '../types/v2/db/Address'
 import { V2Job, V2JobMini, V2JobMiniExtra, V2JobStatus, V2JobStatusAsText } from '../types/v2/db/Job'
+import V2LoadRequest from '../types/v2/db/LoadRequest'
 import { V2Rider, V2RiderStates } from '../types/v2/db/User'
 import { Geo } from '../types/v2/Geo'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
@@ -11,6 +12,51 @@ import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 
 class RiderUtils {
   constructor(public server: HttpServer) {}
+
+  public async uploadRiderID(file: Buffer, uid: string) {
+    // upload to storage
+    const fileUrl = await this.server.utils.uploadFile(
+      {
+        path: '/ids',
+        storage: 'profiles',
+        file
+      }
+    )
+
+    // update rider db
+    const result = (
+      await this.server.db.table<V2Rider>(Tables.v2.Riders)
+        .update({ id: fileUrl })
+        .where({ uid })
+        .returning('*')
+    )[0]
+
+    if (result)
+      await this.server.utils.user.updateUserToWs(result)
+
+    return result
+  }
+
+  public async requestLoad(file: Buffer, rider: string) {
+    // upload to storage
+    const proof = await this.server.utils.uploadFile(
+      {
+        storage: 'load',
+        file
+      }
+    )
+
+    // save to db
+    const uid = await this.server.utils.genUID()
+    return await this.server.db.table<V2LoadRequest>(Tables.v2.LoadRequests)
+      .insert(
+        {
+          uid,
+          rider,
+          proof
+        }
+      )
+  }
 
   public async setOptIn(uid: string, status: boolean) {
     const result = (
@@ -227,7 +273,7 @@ class RiderUtils {
   }
 
   public async completeJob(file: Buffer, uid: string, rider: string) {
-    if (!file)
+    if (!Buffer.isBuffer(file))
       throw new HttpError(
         V2HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
         'Please provide a proper image file.'
