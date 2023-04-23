@@ -40,7 +40,7 @@ interface PasuyoService {
 const Services: PasuyoService[] = [
   {
     name: 'Delivery',
-    icon: 'deliver',
+    icon: 'box-open',
     
     label: 'PADELIVER',
 
@@ -77,7 +77,7 @@ const Services: PasuyoService[] = [
 
   {
     name: 'Bili',
-    icon: 'bili',
+    icon: 'hamburger',
 
     label: 'PABILI',
     unavailable: true,
@@ -88,7 +88,7 @@ const Services: PasuyoService[] = [
 
   {
     name: 'Angkas',
-    icon: 'angkas',
+    icon: 'motorcycle',
 
     label: 'PAANGKAS',
     unavailable: true,
@@ -99,7 +99,7 @@ const Services: PasuyoService[] = [
 
   {
     name: 'Deposit',
-    icon: 'deposit',
+    icon: 'money-bill-wave',
 
     label: 'PADEPOSIT',
     unavailable: true,
@@ -110,7 +110,7 @@ const Services: PasuyoService[] = [
 
   {
     name: 'Utos',
-    icon: 'utos',
+    icon: 'shopping-cart',
 
     label: 'PAUTOS',
     unavailable: true,
