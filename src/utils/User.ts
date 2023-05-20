@@ -187,7 +187,7 @@ class UserUtils {
       longitude = job.startPoint.readFloatLE(4),
       address = job.startPoint.toString('utf-8', 8)
 
-      this.server.utils.ws.send( // notify ws new job was finalized
+      await this.server.utils.ws.send( // notify ws new job was finalized
         {
           c: ProtocolSendTypes.JOB_NEW,
           d: {
@@ -261,6 +261,12 @@ class UserUtils {
     
     if (!user.phone.startsWith('0'))
       user.phone = '0' + user.phone
+
+    if (user.phone.length !== 11)
+      throw new HttpError(
+        V2HttpErrorCodes.AUTH_PHONE_INVALID_LENGTH,
+        'The phone number length is invalid. Please make sure you put in the correct amount of digits.'
+      )
 
     try {
       const role = rider ? V2UserRoles.RIDER : V2UserRoles.CUSTOMER,

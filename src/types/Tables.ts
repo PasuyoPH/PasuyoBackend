@@ -14,7 +14,8 @@ const Tables = {
     Referral: 'v2_codes',
     Notifications: 'v2_notifications',
     Transactions: 'v2_transactions',
-    LoadRequests: 'v2_loadrequests'
+    LoadRequests: 'v2_loadrequests',
+    Promos: 'v2_promos'
   }
 }
 

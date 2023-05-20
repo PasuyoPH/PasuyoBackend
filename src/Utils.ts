@@ -29,10 +29,11 @@ import V2Address from './types/v2/db/Address'
 import busboy from 'busboy'
 import { Services } from './types/v2/PasuyoService'
 import V2Token from './types/v2/db/Token'
-import { V2Rider, V2RiderStates } from './types/v2/db/User'
+import { V2Rider, V2RiderStates, V2User } from './types/v2/db/User'
 import V2LoadRequest from './types/v2/db/LoadRequest'
 import { S3 } from '@aws-sdk/client-s3'
 import UploadFileOptions from './types/UploadFileOptions'
+import V2Promo from './types/v2/db/Promo'
 
 class Utils {
   public user: UserUtils
@@ -45,6 +46,34 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public async deleteUser(uid: string, rider: boolean = false) {
+    if (!uid)
+      throw new HttpError(
+        V2HttpErrorCodes.ADMIN_INVALID_USER_ID,
+        'Invalid user uid provided.'
+      )
+
+    const result = await this.server.db.table<V2User>(
+        rider ?
+          Tables.v2.Riders :
+          Tables.v2.Users
+      )
+      .delete()
+      .where({ uid })
+
+    return result >= 1
+  }
+
+  public async getRiders() {
+    return this.server.db.table<V2Rider>(Tables.v2.Riders)
+      .select('*')
+  }
+
+  public async getPromos() {
+    return this.server.db.table<V2Promo>(Tables.v2.Promos)
+      .select('*')
   }
 
   public async uploadFile(options: UploadFileOptions) {

@@ -5,9 +5,6 @@ class V2GetUserJobs extends Path {
   public requireUserToken = true
 
   public async onRequest() {
-    console.log('a')
-    console.log(await this.server.utils.user.getJobs(this.user.uid))
-
     return {
       value: await this.server.utils.user.getJobs(this.user.uid),
       code: 200

@@ -13,6 +13,33 @@ import { ProtocolSendTypes } from '../types/v2/ws/Protocol'
 class RiderUtils {
   constructor(public server: HttpServer) {}
 
+  public async addCredits(uid: string, credits: number) {
+    if (isNaN(credits)) credits = 0
+    const result = (
+      await this.server.db.table<V2Rider>(Tables.v2.Riders)
+        .increment('credits', credits)
+        .where({ uid })
+        .returning('*')
+    )[0]
+
+    // update to ws
+    if (result)
+      await this.server.utils.user.updateUserToWs(result)
+    
+    return result
+  }
+
+  public async modify(uid: string, data: V2Rider) {
+    if (data.uid) data.uid = uid // disallow uid modification
+
+    return (
+      await this.server.db.table<V2Rider>(Tables.v2.Riders)
+        .update(data)
+        .where({ uid })
+        .returning('*')
+    )[0]
+  }
+
   public async uploadRiderID(file: Buffer, uid: string) {
     // upload to storage
     const fileUrl = await this.server.utils.uploadFile(

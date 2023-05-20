@@ -6,6 +6,8 @@
     "base": "/api"
   },
 
+  "apiVersion": "2.1",
+
   "db": {
     "host": "127.0.0.1",
     "port": 5432,
@@ -49,8 +51,8 @@
 
   "s3": {
     "endpoint": "https://contabostorage.com",
-    "accessKey": "a0113f1c1bf08a3b8391045a5efe4f01",
-    "secretKey": "b4903c2b5a7dac3239fbeac924a74f7c",
+    "accessKey": "a9278f227b6148c91baf3b03ea05fb8b",
+    "secretKey": "ca388a2fbacb06becb32b5578a3accd1",
     "region": "sin",
     "storages": {
       "evidences": {

@@ -60,6 +60,7 @@ interface XPConfig {
 
 interface IConfig {
   http: IHttpConfig
+  apiVersion: string
   db: IDatabaseConfig
   adminKeys: string[]
   captcha: ICaptchaConfig

@@ -35,6 +35,8 @@ class WsUtils {
   public send(data: WsSendProtocol): Promise<Error | WsSendProtocol> {
     return new Promise(
       (resolve, reject) => {
+        if (!this.server.config.ws.enabled) return resolve(null)
+
         if (!this.server.ws) return reject(
           new Error('Tried sending data while no websocket connection was created.')
         )

@@ -71,6 +71,12 @@ import V2RiderRequestLoad from './src/routes/v2/rider/RequestLoad'
 import V2RiderUploadID from './src/routes/v2/rider/UploadId'
 import V2VerifyRider from './src/routes/admin/VerifyRider'
 import V2AdminGetUnverifiedRiders from './src/routes/admin/GetUnverifiedRiders'
+import V2GetPromos from './src/routes/v2/GetPromos'
+import V2AdminGetRiders from './src/routes/admin/GetRiders'
+import V2AdminModifyRider from './src/routes/admin/ModifyRider'
+import V2AdminModifyCredits from './src/routes/admin/ModifyCredits'
+import V2AdminDeleteRider from './src/routes/admin/DeleteRider'
+import V2GetVersion from './src/routes/v2/Version'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -148,6 +154,8 @@ const main = async () => {
   await http.register(V2DeleteDraft)
   await http.register(V2RiderRequestLoad)
   await http.register(V2RiderUploadID)
+  await http.register(V2GetPromos)
+  await http.register(V2GetVersion)
 
   // admin only
   await http.register(V2AdminVerifyToken)
@@ -155,6 +163,10 @@ const main = async () => {
   await http.register(V2ApproveCredits)
   await http.register(V2VerifyRider)
   await http.register(V2AdminGetUnverifiedRiders)
+  await http.register(V2AdminGetRiders)
+  await http.register(V2AdminModifyRider)
+  await http.register(V2AdminModifyCredits)
+  await http.register(V2AdminDeleteRider)
 
   try {
     await http.ready()

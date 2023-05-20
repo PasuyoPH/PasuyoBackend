@@ -3,13 +3,14 @@ enum V2HttpErrorCodes {
   INVALID_FIELDS = 900,
 
   // Auth Related error codes
-  AUTH_DUPL               = 1000,
-  AUTH_FAILED             = 1001,
-  AUTH_INVALID_PIN        = 1002,
-  AUTH_INVALID_NAME       = 1003,
-  AUTH_INVALID_TKN        = 1004,
-  AUTH_INVALID_EMAIL      = 1005,
-  AUTH_REFERRAL_NOT_EXIST = 1006,
+  AUTH_DUPL                 = 1000,
+  AUTH_FAILED               = 1001,
+  AUTH_INVALID_PIN          = 1002,
+  AUTH_INVALID_NAME         = 1003,
+  AUTH_INVALID_TKN          = 1004,
+  AUTH_INVALID_EMAIL        = 1005,
+  AUTH_REFERRAL_NOT_EXIST   = 1006,
+  AUTH_PHONE_INVALID_LENGTH = 1007,
 
   // Delivery Related error codes
   DELIVERY_MISSING_DATA = 2000,
@@ -60,6 +61,9 @@ enum V2HttpErrorCodes {
   // Update job
   JOB_UPDATE_INVALID_STATUS = 10000,
   JOB_UPDATE_FAILED         = 10001,  
+
+  // Admin only error codes
+  ADMIN_INVALID_USER_ID = 11000,
 }
 
 export default V2HttpErrorCodes

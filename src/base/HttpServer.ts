@@ -36,6 +36,7 @@ import V2ReferralSchema from '../schemas/v2/Referrals'
 import V2NotificationsSchema from '../schemas/v2/Notifications'
 import V2TransactionSchema from '../schemas/v2/Transaction'
 import V2LoadRequestSchema from '../schemas/v2/LoadRequest'
+import V2PromosSchema from '../schemas/v2/Promos'
 
 class HttpServer {
   public restana = restana()
@@ -148,7 +149,8 @@ class HttpServer {
         V2ReferralSchema,
         V2NotificationsSchema,
         V2TransactionSchema,
-        V2LoadRequestSchema
+        V2LoadRequestSchema,
+        V2PromosSchema
       ],
       tables = [
         CustomerSchema,
@@ -198,7 +200,34 @@ class HttpServer {
   }
 
   public async ready() {
+    // create 10 test accounts
+    /*for (let i = 0; i < 10; i++)
+      await this.tests()*/
+
     return this.restana.start(this.config.http.port)
+  }
+
+  // perform user account tests
+  public async tests() {
+    const randEmail = await this.utils.genUID(4),
+      randId = await this.utils.genUID(2),
+      randomPhone = Math.floor(Math.random() * 999999999) + 1000000000,
+      randomPin = Math.floor(Math.random() * 999) + 1000
+
+    console.log('Call test()')
+
+    // create user account
+    await this.utils.user.create(
+      {
+        user: {
+          email: randEmail + '@pasuyo.express',
+          fullName: 'FirstName LastName - ' + randId,
+          phone: randomPhone.toString(),
+          pin: randomPin.toString()
+        },
+        rider: true
+      }
+    )
   }
 
   public async register(path: typeof Path) {
