@@ -34,6 +34,8 @@ import V2LoadRequest from './types/v2/db/LoadRequest'
 import { S3 } from '@aws-sdk/client-s3'
 import UploadFileOptions from './types/UploadFileOptions'
 import V2Promo from './types/v2/db/Promo'
+import V2Merchant from './types/v2/db/Merchant'
+import V2Product from './types/v2/db/Product'
 
 class Utils {
   public user: UserUtils
@@ -46,6 +48,24 @@ class Utils {
     this.rider = new RiderUtils(this.server)
 
     this.ws    = new WsUtils(this.server)
+  }
+
+  public async getUsers() {
+    return this.server.db.table<V2User>(Tables.v2.Users)
+      .select('*')
+  }
+
+  public async getMerchantProducts(uid: string) {
+    return this.server.db.table<V2Product>(Tables.v2.Products)
+      .select('*')
+      .where({ merchant: uid })
+  }
+
+  public async getMerchant(uid: string) {
+    return this.server.db.table<V2Merchant>(Tables.v2.Merchants)
+      .select('*')
+      .where({ uid })
+      .first()
   }
 
   public async deleteUser(uid: string, rider: boolean = false) {

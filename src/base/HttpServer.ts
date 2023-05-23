@@ -37,6 +37,7 @@ import V2NotificationsSchema from '../schemas/v2/Notifications'
 import V2TransactionSchema from '../schemas/v2/Transaction'
 import V2LoadRequestSchema from '../schemas/v2/LoadRequest'
 import V2PromosSchema from '../schemas/v2/Promos'
+import V2MerchantSchema from '../schemas/v2/Merchant'
 
 class HttpServer {
   public restana = restana()
@@ -150,7 +151,8 @@ class HttpServer {
         V2NotificationsSchema,
         V2TransactionSchema,
         V2LoadRequestSchema,
-        V2PromosSchema
+        V2PromosSchema,
+        V2MerchantSchema
       ],
       tables = [
         CustomerSchema,

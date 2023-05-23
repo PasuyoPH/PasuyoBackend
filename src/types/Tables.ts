@@ -15,7 +15,9 @@ const Tables = {
     Notifications: 'v2_notifications',
     Transactions: 'v2_transactions',
     LoadRequests: 'v2_loadrequests',
-    Promos: 'v2_promos'
+    Promos: 'v2_promos',
+    Merchants: 'v2_merchants',
+    Products: 'v2_products'
   }
 }
 

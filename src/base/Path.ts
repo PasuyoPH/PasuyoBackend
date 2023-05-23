@@ -254,8 +254,6 @@ It's possible that No onRequest function was found for this route.`
               break
           }
         } catch(err) {
-          console.log(err)
-
           res.statusCode = 400     
           if (err.code === '42703' || err.code === 42703) // knex related or pgsql
             return res.send(

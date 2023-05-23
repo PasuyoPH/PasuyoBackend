@@ -3,6 +3,7 @@ import { HttpReq } from '../../types/Http'
 
 class V2VerifyRider extends Path {
   public path      = '/v2/admin/verify/:uid'
+  public method    = 'post'
   public adminOnly = true
 
   public async onRequest(req: HttpReq) {
