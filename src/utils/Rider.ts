@@ -311,14 +311,32 @@ class RiderUtils {
       storageUrl = this.server.config.s3.storages.evidences.url,
       fileUrl = storageUrl + '/' + fileName
 
+    /*
+
+    await this.server.utils.uploadFile(
+      {
+        storage: 'load',
+        file
+      }
+    )
+
+    */
+
+    await this.server.utils.uploadFile(
+      {
+        storage: 'evidences',
+        file
+      }
+    )
+
     // upload to s3 storage
-    await this.server.storages.evidences.putObject(
+    /*await this.server.storages.evidences.putObject(
       {
         Bucket: 'sin1',
         Key: fileName,
         Body: file
       }
-    )
+    )*/
 
     await this.server.db.transaction(
       async (trx) => {
