@@ -174,7 +174,8 @@ const main = async () => {
     await http.ready()
     await http.log('Backend ready with port:', config.http.port)
   } catch(err) {
-    console.error(err)
+    if (http.config.debug)
+      await http.log('[ERROR]:', err)
   }
 }
 

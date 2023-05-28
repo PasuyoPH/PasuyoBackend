@@ -60,6 +60,7 @@ interface XPConfig {
 
 interface IConfig {
   http: IHttpConfig
+  debug: boolean
   apiVersion: string
   db: IDatabaseConfig
   adminKeys: string[]

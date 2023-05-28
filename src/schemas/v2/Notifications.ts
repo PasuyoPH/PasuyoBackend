@@ -9,7 +9,7 @@ class V2NotificationsSchema extends Schema {
       .unique()
     this.uid('user')
 
-    this.table.bigInteger('createdAt')
+    this.table.bigInteger('receivedAt')
       .notNullable()
 
     this.table.text('title')

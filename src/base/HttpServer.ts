@@ -216,7 +216,8 @@ class HttpServer {
       randomPhone = Math.floor(Math.random() * 999999999) + 1000000000,
       randomPin = Math.floor(Math.random() * 999) + 1000
 
-    console.log('Call test()')
+    if (this.config.debug)
+      await this.log('[DEBUG]: Call test()')
 
     // create user account
     await this.utils.user.create(

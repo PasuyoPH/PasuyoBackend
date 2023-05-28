@@ -306,51 +306,27 @@ class RiderUtils {
         'Please provide a proper image file.'
       )
 
-    const fileHash = await this.server.utils.generateFileHash(file),
-      fileName = fileHash + '.jpg',
-      storageUrl = this.server.config.s3.storages.evidences.url,
-      fileUrl = storageUrl + '/' + fileName
-
-    /*
-
-    await this.server.utils.uploadFile(
-      {
-        storage: 'load',
-        file
-      }
-    )
-
-    */
-
-    await this.server.utils.uploadFile(
+    const fileUrl = await this.server.utils.uploadFile(
       {
         storage: 'evidences',
         file
       }
     )
 
-    // upload to s3 storage
-    /*await this.server.storages.evidences.putObject(
-      {
-        Bucket: 'sin1',
-        Key: fileName,
-        Body: file
-      }
-    )*/
-
     await this.server.db.transaction(
       async (trx) => {
-        const job = await trx.table<V2Job>(Tables.v2.Jobs)
-          .update(
-            {
-              status: V2JobStatus.DONE,
-              finishedAt: Date.now(),
-              proof: fileUrl
-            }
-          )
-          .where({ uid })
-          .returning('*')
-          .first(),
+        const job = (
+          await trx.table<V2Job>(Tables.v2.Jobs)
+            .update(
+              {
+                status: V2JobStatus.DONE,
+                finishedAt: Date.now(),
+                proof: fileUrl
+              }
+            )
+            .where({ uid })
+            .returning('*')
+          )[0],
           xpAdded = await this.server.utils.calculateXp(job.distance),
           result = await trx.table<V2Rider>(Tables.v2.Riders)
             .update(
@@ -361,8 +337,6 @@ class RiderUtils {
             )
             .where({ uid: rider })
             .returning('*')
-
-        console.log('Add Xp:', this.server.utils.calculateXp(job.distance))
 
         if (result.length > 0) { // update to websocket
           await this.server.utils.updateRiderState(rider, V2RiderStates.RIDER_ONLINE, true)
@@ -383,76 +357,6 @@ class RiderUtils {
       )
       .first()
   }
-
-  /*public async acceptJob(rider: V2Rider, uid: string) {
-    // check if rider already has jobs pending
-    const riderHasJob = async () => {
-      const jobs = await this.server.db.table<V2Job>(Tables.v2.Jobs)
-        .select('*')
-        .where({ rider: rider.uid })
-
-      return !!jobs.find(
-        (job) => job.status !== V2JobStatus.DONE &&
-          job.status !== V2JobStatus.CANCELLED
-      )
-    }
-
-    if (await riderHasJob())
-      throw new HttpError(
-        V2HttpErrorCodes.JOB_RIDER_HAS_JOB,
-        'You already have an existing job'
-      )
-
-    // fetch this job
-    const job = await this.server.db.table<V2Job>(Tables.v2.Jobs)
-      .select('*')
-      .where({ uid })
-      .first()
-
-    if (!job)
-      throw new HttpError(
-        V2HttpErrorCodes.JOB_NOT_EXIST,
-        'This job can\'t be accepted. It doesn\'t exist.'
-      )
-
-    console.log(rider.credits)
-
-    if (rider.credits < job.fee)
-      throw new HttpError(
-        V2HttpErrorCodes.JOB_NOT_ENOUGH_CREDITS,
-        'You do not have enough credits for this job.'
-      )
-
-    if (job.rider)
-      throw new HttpError(
-        V2HttpErrorCodes.JOB_ALREADY_ACCEPTED,
-        'This job seems to be accepted already.' +
-          (
-            job.rider === rider.uid ?
-              'By you apparently.' :
-              ''
-          )
-      )
-
-    rider.credits -= job.fee
-
-    // update rider
-    await this.server.db.table(Tables.v2.Riders)
-      .update({ credits: rider.credits })
-      .where({ uid: rider.uid })
-
-    await this.server.db.table(Tables.v2.Jobs)
-      .update(
-        {
-          rider: rider.uid,
-          status: V2JobStatus.ACCEPTED,
-          startedAt: Date.now()
-        }
-      )
-      .where({ uid: job.uid })
-
-    return job
-  }*/
 
   public async getHistory(uid: string) {
     const today = new Date(),
@@ -549,7 +453,8 @@ class RiderUtils {
 
         if (tokens.length >= 1) {
           const jobInfoAsText = await this.server.utils.jobInfoToText(job)
-          console.log('Tokens:', tokens)
+          if (this.server.config.debug)
+            await this.server.log('[DEBUG]: Tokens:', tokens)
 
           await this.server.expo.sendPushNotificationsAsync(
             tokens.map(
@@ -618,40 +523,6 @@ class RiderUtils {
       ) as V2Job[]
 
     return jobs
-      /*filtered = jobs.reduce( // filter jobs
-        (result, curr) => {
-          switch (curr.status) {
-            case V2JobStatus.PROCESSED:
-              result.approved.push(curr)
-              break
-
-            case V2JobStatus.DONE:
-              result.finished.push(curr)
-              break
-
-            case V2JobStatus.CANCELLED:
-              result.cancelled.push(curr)
-              break
-
-            default:
-              result.inJob.push(curr)
-              if (!result.current && curr.rider === rider)
-                result.current = curr
-              break
-          }
-
-          return result
-        },
-        {
-          approved: [],
-          finished: [],
-          cancelled: [],
-          inJob: [],
-          current: null
-        }
-      )
-
-    return filtered*/
   }
 }
 

@@ -98,7 +98,11 @@ class Utils {
 
   public async uploadFile(options: UploadFileOptions) {
     const bucket = this.server.storages[options.storage] as S3
-    if (!bucket) return
+    if (!bucket)
+      throw new HttpError(
+        V2HttpErrorCodes.FILE_UPLOAD_NO_BUCKET,
+        'No bucket found for: ' + options.storage
+      )
 
     if (!Buffer.isBuffer(options?.file))
       throw new HttpError(
@@ -280,6 +284,9 @@ class Utils {
   }
 
   public async addExpoToken(token: string, uid: string, isRider?: boolean) {
+    if (this.server.config.debug)
+      await this.server.log('[DEBUG]: Adding expo token:', token, 'from uid:', uid)
+
     return await this.server.db.table(isRider ? Tables.v2.Tokens : Tables.v2.UserTokens)
       .insert(
         {
@@ -292,6 +299,9 @@ class Utils {
   }
 
   public async deleteExpoToken(token: string, uid: string, isRider: boolean) {
+    if (this.server.config.debug)
+      await this.server.log('[DEBUG]: Deleting expo token:', token, 'from uid:', uid)
+
     return await this.server.db.table(isRider ? Tables.v2.Tokens : Tables.v2.UserTokens)
       .delete('*')
       .where(

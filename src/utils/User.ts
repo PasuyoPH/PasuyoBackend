@@ -43,6 +43,7 @@ class UserUtils {
           draft: false
         }
       )
+      .where('status', '<', V2JobStatus.DONE)
   }
 
   public async deleteDraft(user: string, uid: string) {
@@ -79,7 +80,8 @@ class UserUtils {
   public async addNotification(user: string, title: string, body: string) {
     const uid = await this.server.utils.genUID()
 
-    return await this.server.db.table<V2Notification>(Tables.v2.Notifications)
+    return (
+      await this.server.db.table<V2Notification>(Tables.v2.Notifications)
       .insert(
         {
           uid,
@@ -90,6 +92,7 @@ class UserUtils {
         }
       )
       .returning('*')
+    )[0]
   }
 
   public async getNotifications(user: string) {

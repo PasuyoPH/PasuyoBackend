@@ -6,6 +6,7 @@
     "base": "/api"
   },
 
+  "debug": true,
   "apiVersion": "2.1",
 
   "db": {
@@ -46,7 +47,7 @@
   },
 
   "google": {
-    "apikey": "AIzaSyDzy3Xj37GQ75J4cdcb29eqMRlvNVVIg0w"
+    "apikey": "AIzaSyCzEhb7M7ILYTsHj7rU5yO7pxqODzSUCQs"
   },
 
   "s3": {

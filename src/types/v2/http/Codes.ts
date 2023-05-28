@@ -57,6 +57,7 @@ enum V2HttpErrorCodes {
 
   // File related?
   JOB_NO_IMAGE_FILE_PROVIDED = 9000,
+  FILE_UPLOAD_NO_BUCKET      = 9001,
 
   // Update job
   JOB_UPDATE_INVALID_STATUS = 10000,

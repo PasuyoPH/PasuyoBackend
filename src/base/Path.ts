@@ -89,6 +89,9 @@ class Path implements IRoute {
     server.restana[this.method](
       pathBase + this.path,
       async (req: HttpReq, res: HttpRes) => {
+        if (this.server.config.debug)
+          await this.server.log('[DEBUG]: Called:', this.path, 'with method:', this.method)
+
         const adminKey = req.headers.authorization
         if (
           this.adminOnly &&

@@ -5,7 +5,7 @@ class DefaultRoute extends Path implements IRoute {
   public async onRequest() {
     return {
       value: {
-        v: '1',
+        v: this.server.config.apiVersion,
         t: Date.now()
       },
       code: 200
