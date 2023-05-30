@@ -345,10 +345,10 @@ class RiderUtils {
           // send notification
           const tokens = await this.server.db.table(Tables.v2.UserTokens)
             .select('*')
-            .where({ user: job[0].creator })
+            .where({ user: job.creator })
 
           if (tokens.length >= 1) {
-            const jobInfoAsText = await this.server.utils.jobInfoToText(job[0])
+            const jobInfoAsText = await this.server.utils.jobInfoToText(job)
             this.server.expo.sendPushNotificationsAsync(
               tokens.map(
                 (token) => (
