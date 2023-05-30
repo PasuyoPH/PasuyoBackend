@@ -341,6 +341,27 @@ class RiderUtils {
         if (result.length > 0) { // update to websocket
           await this.server.utils.updateRiderState(rider, V2RiderStates.RIDER_ONLINE, true)
           await this.server.utils.user.updateUserToWs(result[0])
+
+          // send notification
+          const tokens = await this.server.db.table(Tables.v2.UserTokens)
+            .select('*')
+            .where({ user: job[0].creator })
+
+          if (tokens.length >= 1) {
+            const jobInfoAsText = await this.server.utils.jobInfoToText(job[0])
+            this.server.expo.sendPushNotificationsAsync(
+              tokens.map(
+                (token) => (
+                  {
+                    to: token.token,
+                    channelId: 'default',
+                    title: 'Job Updated',
+                    body: `Your ${jobInfoAsText.name} of ${jobInfoAsText.data} has been marked as complete.`
+                  }
+                )
+              )
+            )
+          }
         }
       }
     )

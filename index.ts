@@ -78,6 +78,7 @@ import V2AdminModifyCredits from './src/routes/admin/ModifyCredits'
 import V2AdminDeleteRider from './src/routes/admin/DeleteRider'
 import V2GetVersion from './src/routes/v2/Version'
 import V2AdminGetUsers from './src/routes/admin/GetUsers'
+import V2GetHistory from './src/routes/v2/user/GetHistory'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -145,6 +146,7 @@ const main = async () => {
   await http.register(V2ViewJobs)
   await http.register(V2OptInLocation)
   await http.register(V2DeleteJob)
+  await http.register(V2GetHistory)
   await http.register(V2GetUserJobs)
   await http.register(V2GetUserJob)
   await http.register(V2GetUser)

@@ -46,6 +46,17 @@ class UserUtils {
       .where('status', '<', V2JobStatus.DONE)
   }
 
+  public async getHistory(uid: string) {
+    return await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where(
+        {
+          creator: uid,
+          status: V2JobStatus.DONE
+        }
+      )
+  }
+
   public async deleteDraft(user: string, uid: string) {
     return await this.server.db.table(Tables.v2.Jobs)
       .delete()
@@ -101,8 +112,12 @@ class UserUtils {
       .where({ user })
   }
 
-  public async getUser(uid: string) {
-    const user = await this.server.db.table<V2User>(Tables.v2.Users)
+  public async getUser(uid: string, rider?: boolean) {
+    const user = await this.server.db.table<V2User | V2Rider>(
+      rider ?
+        Tables.v2.Riders :
+        Tables.v2.Users
+    )
       .select(
         'uid',
         'fullName',
@@ -110,6 +125,10 @@ class UserUtils {
       )
       .where({ uid })
       .first()
+
+    console.log(user, rider ?
+      Tables.v2.Riders :
+      Tables.v2.Users)
 
     return user
   }

@@ -7,10 +7,11 @@ class V2GetUser extends Path {
   public requireUserToken = true
 
   public async onRequest(req: HttpReq) {
-    const { uid } = req.params as { uid: string }
+    const { uid } = req.params as { uid: string },
+      { rider } = req.query as { rider: string }
 
     return {
-      value: this.server.utils.user.getUser(uid),
+      value: await this.server.utils.user.getUser(uid, rider === 'true'),
       code: 200
     }
   }

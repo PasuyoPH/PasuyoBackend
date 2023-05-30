@@ -36,6 +36,7 @@ import UploadFileOptions from './types/UploadFileOptions'
 import V2Promo from './types/v2/db/Promo'
 import V2Merchant from './types/v2/db/Merchant'
 import V2Product from './types/v2/db/Product'
+import SendNotificationOptions from './types/v2/SendNotification'
 
 class Utils {
   public user: UserUtils

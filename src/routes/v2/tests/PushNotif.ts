@@ -4,7 +4,7 @@ import axios from 'axios'
 
 class V2TestPushNotif extends Path {
   public path = '/v2/tests/pushnotif/:expoPushToken'
-  //public adminOnly = true
+  public adminOnly = true
 
   public async onRequest(req: HttpReq) {    
     await this.server.expo.sendPushNotificationsAsync(
