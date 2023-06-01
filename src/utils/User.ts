@@ -332,14 +332,16 @@ class UserUtils {
 
       return token
     } catch(err) {
-      switch (Number(err.code)) {
-        case 23505: {
-          throw new HttpError(
-            V2HttpErrorCodes.AUTH_DUPL,
-            'This email or phone number provided is already in use. Please try a different one.'
-          )
-        }
-      }
+      const code = Number(err.code)
+      if (code === 23505)
+        throw new HttpError(
+          V2HttpErrorCodes.AUTH_DUPL,
+          'This email or phone number provided is already in use. Please try a different one.'
+        )
+      else throw new HttpError(
+        code,
+        err.message ?? ('Request failed with code: ' + code)
+      )
     }
   }
 

@@ -18,7 +18,7 @@ class V2UserSchema extends Schema {
     this.table.text('fullName')
       .notNullable()
 
-    this.table.string('pin', 4)
+    this.table.text('pin')
       .notNullable()
 
     this.table.text('referral')
