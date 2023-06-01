@@ -268,6 +268,7 @@ class Utils {
       'weight',
       'rider',
       'draft',
+      'creator',
       ...(
         includeExtra ? [
           'startedAt',
