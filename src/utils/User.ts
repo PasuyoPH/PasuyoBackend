@@ -21,6 +21,42 @@ const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
 class UserUtils {
   constructor(public server: HttpServer) {}
 
+  public async modifyAddress(
+    user: string,
+    uid: string,
+    data: V2HttpAddressData
+  ) {
+    // find jobs where status is not done
+    const jobsUsingAddress = await this.server.db.table<V2Job>(Tables.v2.Jobs)
+      .select('*')
+      .where(
+        {
+          uid,
+          creator: user
+        }
+      )
+      .whereNotIn(
+        'status',
+        [
+          V2JobStatus.DONE,
+          V2JobStatus.CANCELLED
+        ]
+      )
+
+    if (jobsUsingAddress.length >= 1)
+      throw new HttpError(
+        V2HttpErrorCodes.ADDRESS_USED_BY_JOB,
+        'Address is being used by an active job. Please wait for that to finish before modifying the address.'
+      )
+
+    return (
+      await this.server.db.table<V2Address>(Tables.v2.Address)
+        .update(data)
+        .where('uid', uid)
+        .returning('*')
+    )[0]
+  }
+
   public async getUserJob(user: string, uid: string) {
     return await this.server.db.table<V2Job>(Tables.v2.Jobs)
       .select('*')

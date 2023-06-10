@@ -59,8 +59,8 @@ const Services: PasuyoService[] = [
 
       {
         content: [
-          { key: 'fromAddress', label: 'From Address', type: PasuyoFormTypes.SELECT_ADDRESS },
-          { key: 'toAddress', label: 'To Address', type: PasuyoFormTypes.SELECT_ADDRESS }
+          { key: 'fromAddress', label: 'Pickup From', type: PasuyoFormTypes.SELECT_ADDRESS },
+          { key: 'toAddress', label: 'Deliver To', type: PasuyoFormTypes.SELECT_ADDRESS }
         ],
         row: true
       }

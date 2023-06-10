@@ -49,6 +49,7 @@ enum V2HttpErrorCodes {
   ADDRESS_IVNALID_CONTACT_PHONE     = 7003,
   ADDRESS_INVALID_NOTE              = 7004,
   ADDRESS_CANT_DELETE               = 7005,
+  ADDRESS_USED_BY_JOB               = 7006,
 
   // Distance
   DISTANCE_INVALID_POINTS = 8000,
