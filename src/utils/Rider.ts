@@ -137,7 +137,9 @@ class RiderUtils {
         'uid',
         'formattedAddress',
         'house',
-        'name'
+        'name',
+        'contactName',
+        'contactPhone'
       )
       .whereIn('uid', ids)
 
