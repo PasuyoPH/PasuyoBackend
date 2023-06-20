@@ -65,7 +65,11 @@ enum V2HttpErrorCodes {
   JOB_UPDATE_FAILED         = 10001,  
 
   // Admin only error codes
-  ADMIN_INVALID_USER_ID = 11000,
+  ADMIN_INVALID_USER_ID     = 11000,
+  ADMIN_INVALID_ACCOUNT     = 11001,
+  ADMIN_USERNAME_EXISTS     = 11002,
+  ADMIN_INVALID_TOKEN       = 11003,
+  ADMIN_INVALID_PERMISSIONS = 11004
 }
 
 export default V2HttpErrorCodes

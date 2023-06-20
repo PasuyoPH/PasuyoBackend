@@ -80,6 +80,14 @@ import V2GetVersion from './src/routes/v2/Version'
 import V2AdminGetUsers from './src/routes/admin/GetUsers'
 import V2GetHistory from './src/routes/v2/user/GetHistory'
 import V2ModifyAddress from './src/routes/v2/address/ModifyAddress'
+
+// v3 routes
+import V3CreateAdmin from './src/routes/v3/admin/Create'
+import V3AuthAdmin from './src/routes/v3/admin/Auth'
+import V3GetAdminSelf from './src/routes/v3/admin/GetSelf'
+import V3VerifyRider from './src/routes/v3/admin/Verifyer/VerifyRider'
+import V3ModifyCredits from './src/routes/v3/admin/Accounting/ModifyCredits'
+import V3AdminGetRiders from './src/routes/v3/admin/Riders'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -173,6 +181,15 @@ const main = async () => {
   await http.register(V2AdminModifyCredits)
   await http.register(V2AdminDeleteRider)
   await http.register(V2AdminGetUsers)
+
+  // v3
+  await http.register(V3CreateAdmin)
+  await http.register(V3AuthAdmin)
+  await http.register(V3GetAdminSelf)
+
+  await http.register(V3VerifyRider)
+  await http.register(V3ModifyCredits)
+  await http.register(V3AdminGetRiders)
 
   try {
     await http.ready()

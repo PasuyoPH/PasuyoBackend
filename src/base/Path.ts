@@ -16,6 +16,7 @@ import { URLSearchParams } from 'url'
 
 import { V2Rider, V2User } from '../types/v2/db/User'
 import V2HttpErrorCodes from '../types/v2/http/Codes'
+import V3Admin, { V3AdminRoles } from '../types/v3/db/Admin'
 
 class Path implements IRoute {
   public path   = '/'
@@ -35,6 +36,12 @@ class Path implements IRoute {
 
   public user: V2Rider | V2User = null
   public mustBeVerifiedRider = false
+
+  public admin: {
+    check: boolean,
+    role: V3AdminRoles[],
+  } = null
+  public adminUser: V3Admin = null
 
   private clean(data: IPathReturnObject | ICustomError) {
     return this.server.config.http.cleanedJsonResponses ?
@@ -93,6 +100,43 @@ class Path implements IRoute {
           await this.server.log('[DEBUG]: Called:', this.path, 'with method:', this.method)
 
         const adminKey = req.headers.authorization
+        if (this.admin && this.admin.check) {
+          // get admin data
+          const user = await this.server.utils.adminFromToken(adminKey)
+          if (!user) {
+            const result = {
+              error: true,
+              message: 'Invalid admin token was provided.',
+              code: V2HttpErrorCodes.ADMIN_INVALID_TOKEN,
+        
+            }
+            res.statusCode = 400
+
+            return res.send(
+              this.clean(result)
+            )
+          }
+
+          if (
+            Array.isArray(this.admin.role) &&
+            this.admin.role.length > 0 &&
+            !this.admin.role.includes(user.role)
+          ) {
+            const result = {
+              error: true,
+              message: 'You don\'t have the sufficient permission for this action.',
+              code: V2HttpErrorCodes.ADMIN_INVALID_PERMISSIONS
+            }
+            res.statusCode = 401
+  
+            return res.send(
+              this.clean(result)
+            )
+          }
+
+          this.adminUser = user
+        }
+
         if (
           this.adminOnly &&
           !this.server.config.adminKeys.includes(adminKey)
@@ -258,6 +302,8 @@ It's possible that No onRequest function was found for this route.`
           }
         } catch(err) {
           res.statusCode = 400     
+          console.log(err)
+
           if (err.code === '42703' || err.code === 42703) // knex related or pgsql
             return res.send(
               this.clean(

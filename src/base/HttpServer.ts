@@ -39,6 +39,9 @@ import V2LoadRequestSchema from '../schemas/v2/LoadRequest'
 import V2PromosSchema from '../schemas/v2/Promos'
 import V2MerchantSchema from '../schemas/v2/Merchant'
 
+// v3 schemas
+import V3AdminSchema from '../schemas/v3/Admin'
+
 class HttpServer {
   public restana = restana()
   public routes: Map<string, Path> = new Map()
@@ -154,6 +157,9 @@ class HttpServer {
         V2PromosSchema,
         V2MerchantSchema
       ],
+      V3tables = [
+        V3AdminSchema
+      ],
       tables = [
         CustomerSchema,
         DeliveriesSchema,
@@ -161,7 +167,8 @@ class HttpServer {
         RatesSchema,
         JobSchema,
 
-        ...V2tables
+        ...V2tables,
+        ...V3tables
       ]
 
     for (const Schema of tables) {

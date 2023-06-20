@@ -36,6 +36,7 @@ import UploadFileOptions from './types/UploadFileOptions'
 import V2Promo from './types/v2/db/Promo'
 import V2Merchant from './types/v2/db/Merchant'
 import V2Product from './types/v2/db/Product'
+import V3Admin, { V3AdminRoles } from './types/v3/db/Admin'
 
 class Utils {
   public user: UserUtils
@@ -777,6 +778,92 @@ class Utils {
       .insert(data)
 
     return data
+  }
+
+  public async adminAuth(username: string, password: string) {
+    const user = await this.server.db.table<V3Admin>(Tables.v3.Admins)
+      .select('*')
+      .whereRaw('LOWER("username") = LOWER(?)', [username ?? ''])
+      .where('password', password ?? '')
+      .first()
+
+    if (!user)
+      throw new HttpError(
+        V2HttpErrorCodes.ADMIN_INVALID_ACCOUNT,
+        'Failed to login with provided details.'
+      )
+
+    return await this.encryptJWT(
+      {
+        uid: user.uid,
+        password: user.password
+      },
+      86400
+    )
+  }
+
+  public async adminCreate(username: string, password: string) {
+    if (!username)
+      throw new HttpError(
+        V2HttpErrorCodes.INVALID_FIELDS,
+        'Please provide a username.'
+      )
+
+    if (!password || password.length < 4)
+        throw new HttpError(
+          V2HttpErrorCodes.INVALID_FIELDS,
+          'Please make sure password has 4 or more characters.'
+        )
+
+    const user = await this.server.db.table<V3Admin>(Tables.v3.Admins)
+      .whereRaw('LOWER("username") = LOWER(?)', [username])
+      .first('*')
+
+    if (user)
+      throw new HttpError(
+        V2HttpErrorCodes.ADMIN_INVALID_ACCOUNT,
+        'A username like this already exists. Please choose another.'
+      )
+
+    const data: V3Admin = {
+      uid: await this.genUID(),
+      username,
+      password,
+      createdAt: Date.now(),
+      role: V3AdminRoles.ADMIN
+    }
+
+    await this.server.db.table<V3Admin>(Tables.v3.Admins)
+      .insert(data)
+
+    return await this.server.utils.encryptJWT(
+      {
+        uid: data.uid,
+        password: data.password
+      },
+      86400
+    )
+  }
+
+  public async adminFromToken(token: string) {
+    const data = await this.decryptJWT<
+      {
+        uid: string
+        password: string
+      }
+    >(token)
+
+    if (!data) return null
+
+    return await this.server.db.table<V3Admin>(Tables.v3.Admins)
+      .select('username', 'uid', 'role', 'createdAt')
+      .where(
+        {
+          uid: data.uid,
+          password: data.password
+        }
+      )
+      .first()
   }
 
   public async createJob(

@@ -18,6 +18,9 @@ const Tables = {
     Promos: 'v2_promos',
     Merchants: 'v2_merchants',
     Products: 'v2_products'
+  },
+  v3: {
+    Admins: 'v3_admins'
   }
 }
 
