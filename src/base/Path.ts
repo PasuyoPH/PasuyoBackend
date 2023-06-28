@@ -1,89 +1,47 @@
 import {
   HttpReq,
-  IRoute,
   HttpRes,
   PathReturnable,
-  IPathReturnObject,
-  ICustomError
 } from '../types/Http'
 import HttpServer from './HttpServer'
 
-import zlib from 'zlib'
-import { promisify } from 'util'
+// Reworked
+import PathPermissions from '../types/path/PathPermissions'
+import { CustomError, PathReturnObject } from '../types/path/PathReturnable'
+import Admin from '../types/database/Admin'
+import HttpError from './HttpError'
+import HttpErrorCodes from '../types/ErrorCodes'
+import ClientRequest from './ClientRequest'
+import User from '../types/database/User'
+import { Rider } from '../types/database/Rider'
 
-import axios from 'axios'
-import { URLSearchParams } from 'url'
-
-import { V2Rider, V2User } from '../types/v2/db/User'
-import V2HttpErrorCodes from '../types/v2/http/Codes'
-import V3Admin, { V3AdminRoles } from '../types/v3/db/Admin'
-
-class Path implements IRoute {
+class Path {
   public path   = '/'
   public method = 'get'
 
-  public adminOnly = false
+  //public adminOnly = false
   public server: HttpServer
 
-  public deflate = promisify(zlib.deflate)
-  public inflate = promisify(zlib.inflate)
+  //public deflate = promisify(zlib.deflate)
+  //public inflate = promisify(zlib.inflate)
 
-  public cache = false
-  public captcha = false
+  //public cache = false
+  //public captcha = false
 
-  public requireUserToken = false
-  public token: string = null
+  //public requireUserToken = false
+  //public mustBeVerifiedRider = false
 
-  public user: V2Rider | V2User = null
-  public mustBeVerifiedRider = false
+  //public adminUser: V3Admin = null
 
-  public admin: {
-    check: boolean,
-    role: V3AdminRoles[],
-  } = null
-  public adminUser: V3Admin = null
+  // Reworked
+  public permissions: PathPermissions = null
+  private _user: User | Admin | Rider = null // To be filled with data if requested permissions
+  private _token = null // To be filled with user token data if requested permissions
 
-  private clean(data: IPathReturnObject | ICustomError) {
+  private clean(data: PathReturnObject | CustomError) {
     return this.server.config.http.cleanedJsonResponses ?
       JSON.stringify(data, null, 2) :
       JSON.stringify(data)
-  }
-
-  private async addToCache(url: string, data: IPathReturnObject) {
-    if (!this.cache) return
-
-    await this.server.log(url, 'not in cache. Now added.')
-    this.server.cache.data.set(
-      url,
-      {
-        expiry: Date.now() + (
-          (this.server.cache.ttl * 1000) *
-          60
-        ),
-        data: await this.deflate(
-          JSON.stringify(data),
-          { level: zlib.constants.Z_BEST_COMPRESSION }
-        )
-      }
-    )
-  }
-
-  private async getFromCache(url: string): Promise<IPathReturnObject | undefined> {
-    if (!this.cache) return
-
-    const cached = this.server.cache.data.get(url)
-    if (Date.now() >= cached?.expiry || 0) return
-
-    return cached ? (
-      JSON.parse(
-        (
-          await this.inflate(
-            cached.data,
-            { level: zlib.constants.Z_BEST_COMPRESSION }
-          )
-        ).toString()
-      )
-    ) : undefined
   }
 
   public register(server: HttpServer) {
@@ -96,264 +54,138 @@ class Path implements IRoute {
     server.restana[this.method](
       pathBase + this.path,
       async (req: HttpReq, res: HttpRes) => {
+        const clientRequest = new ClientRequest(req)
+
         if (this.server.config.debug)
-          await this.server.log('[DEBUG]: Called:', this.path, 'with method:', this.method)
-
-        const adminKey = req.headers.authorization
-        if (this.admin && this.admin.check) {
-          // get admin data
-          const user = await this.server.utils.adminFromToken(adminKey)
-          if (!user) {
-            const result = {
-              error: true,
-              message: 'Invalid admin token was provided.',
-              code: V2HttpErrorCodes.ADMIN_INVALID_TOKEN,
-        
-            }
-            res.statusCode = 400
-
-            return res.send(
-              this.clean(result)
-            )
-          }
-
-          if (
-            Array.isArray(this.admin.role) &&
-            this.admin.role.length > 0 &&
-            !this.admin.role.includes(user.role)
-          ) {
-            const result = {
-              error: true,
-              message: 'You don\'t have the sufficient permission for this action.',
-              code: V2HttpErrorCodes.ADMIN_INVALID_PERMISSIONS
-            }
-            res.statusCode = 401
-  
-            return res.send(
-              this.clean(result)
-            )
-          }
-
-          this.adminUser = user
-        }
-
-        if (
-          this.adminOnly &&
-          !this.server.config.adminKeys.includes(adminKey)
-        ) {
-          const result = {
-            error: true,
-            message: 'You are unauthorized to visit this page.',
-            code: 401
-          }
-          res.statusCode = result.code
-
-          return res.send(
-            this.clean(result)
-          )
-        }
-
-        if (this.requireUserToken) {
-          const token = req.headers.authorization as string ?? '',
-            user = await this.server.utils.user.fromToken(token).catch(() => {}) as any,
-            isValid = !!user
-
-          if (!isValid) { // token failed
-            const result = {
-              error: true,
-              message: 'User token provided is either invalid or expired.',
-              code: V2HttpErrorCodes.AUTH_INVALID_TKN,
-              userTokenInvalid: true
-            }
-            res.statusCode = 400
-
-            return res.send(
-              this.clean(result)
-            )
-          } else {
-            if (
-              this.mustBeVerifiedRider &&
-              !user.verified
-            ) {
-              const result = {
-                error: true,
-                message: 'This route requires the user to be a verified rider.',
-                code: V2HttpErrorCodes.RIDER_NOT_VERIFIED
-              }
-              res.statusCode = 400
-
-              return res.send(
-                this.clean(result)
-              )
-            }
-            
-            this.token = token
-            this.user  = user
-          }
-        }
-
-        if (this.captcha) {
-          const { captchaResponse } = req.body as unknown as { captchaResponse: string },
-            reqURL = 'https://hcaptcha.com/siteverify',
-            axiosRes = await axios.post(
-              reqURL,
-              new URLSearchParams(
-                {
-                  secret: this.server.config.captcha.secret,
-                  response: captchaResponse,
-                  sitekey: this.server.config.captcha.sitekey
-                }
-              ),
-              {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-              }
-            )
-
-          delete req.body['captchaResponse']
-          if (!axiosRes.data.success) {
-            const result = {
-              error: true,
-              message: `Captcha failed. Errors: "${(axiosRes.data['error-codes'] ?? []).join('", "')}"`,
-              code: 400
-            }
-            res.statusCode = result.code
-
-            return res.send(
-              this.clean(result)
-            )
-          }
-        }
+          await this.server.log('[DEBUG]: Called:', this.path, 'with method:', this.method.toUpperCase())
 
         try {
-          const path = req.url,
-            url = path.endsWith('/') && path.length > 1 ?
-              path.slice(0, -1) :
-              path,
-              cacheData = await this.getFromCache(url)
+          if (this.permissions) { // check for permissions
+            const token = req.headers.authorization
+            this._token = token
 
-          if (this.cache) {
-            if (cacheData) { // data is in cache
-              await this.server.log('Found', url, 'in cache.')
-              if (typeof cacheData.code === 'number')
-                res.statusCode = cacheData.code
-  
-              return res.send(
-                this.clean(cacheData)
-              )
-            } else this.server.cache.data.delete(url)
-          }
-            
-          const result = await this.onRequest(req, res)
-        
-          switch (typeof result) {
-            case 'object':
-              if (result === null || Array.isArray(result)) {
-                const data = {
-                  code: 400,
-                  message: 'no message was provided',
-                  result
-                }
-      
-                res.statusCode = 400
-                await this.addToCache(url, data) // cache
+            switch (this.permissions.check) {
+              case 'user':
+                const user = await this.server.utils.users.fromToken<User>(token, 'user')
+                if (!user)
+                  throw new HttpError(
+                    HttpErrorCodes.AUTH_INVALID_TKN,
+                    'Invalid user token provided. Please try again.'
+                  )
 
-                return res.send(
-                  this.clean(data)
-                )
-              }
-
-              if (result.willPipe)
+                this._user = user
                 break
 
-              if (typeof result.code === 'number')
-                res.statusCode = result.code
+              case 'rider':
+                const rider = await this.server.utils.users.fromToken<Rider>(token, 'rider')
+                if (!rider)
+                  throw new HttpError(
+                    HttpErrorCodes.AUTH_INVALID_TKN,
+                    'Invalid rider token provided. Please try again.'
+                  )
 
-              if (!result.error) // don't cache when errored
-                await this.addToCache(url, result)
+                if (this.permissions.verified && !rider.verified)
+                  throw new HttpError(
+                    HttpErrorCodes.RIDER_NOT_VERIFIED,
+                    'Please make sure that you are verified before proceeding.'
+                  )
 
-              res.send(
-                this.clean(result)
-              )
-              break
+                this._user = rider
+                break
 
-            case 'number':
-              res.statusCode = result
-              res.end()
-              break
+              case 'admin': // get admin data
+                const admin = await this.server.utils.users.fromToken<Admin>(token, 'admin')
+                if (!admin)
+                  throw new HttpError(
+                    HttpErrorCodes.ADMIN_INVALID_TOKEN,
+                    'Invalid admin token provided. Please try again.'
+                  )
 
-            case 'string':
-              res.send(result)
-              break
+                if (!Array.isArray(this.permissions.role))
+                  this.permissions.role = []
 
-            default:
-              res.statusCode = 500
-              res.send(
-                this.clean(
-                  {
-                    code: 500,
-                    message: `Request returned 'undefined'.
-It's possible that No onRequest function was found for this route.`
-                  }
+                if (
+                  this.permissions.role.length >= 1 &&
+                  !this.permissions.role.includes(admin.role)
                 )
-              )
+                  throw new HttpError(
+                    HttpErrorCodes.ADMIN_INVALID_PERMISSIONS,
+                    'You have insufficient permissions for this action.'
+                  )
 
-              res.end()
-              break
+                this._user = admin
+                break
+
+              default: ''
+                break
+            }
           }
-        } catch(err) {
-          res.statusCode = 400     
-          console.log(err)
 
-          if (err.code === '42703' || err.code === 42703) // knex related or pgsql
+          const result = await this.onRequest(clientRequest, res) as PathReturnObject
+          return res.send(
+            this.clean(
+              result ?? { code: 200 }
+            )
+          )
+        } catch(err) {
+          if (this.server.config.debug)
+            console.log('[ERROR]:', err)
+
+          if (err.code === '42703' || err.code === 42703) { // knex related or pgsql
+            res.statusCode = 400
+
             return res.send(
               this.clean(
                 {
                   error: true,
-                  code: V2HttpErrorCodes.INVALID_FIELDS,
-    
-                  message: 'Invalid fields provided.'
+                  code: HttpErrorCodes.INVALID_FIELDS,
+                  message: 'Invalid fields provided. (' +
+                    (err.message ?? 'No message provided.') + ')'
                 }
               )
             )
-        
-          const defaultErrorMessage = 'Internal API Error, please contact admins about this.',
-          result = await this.onError(err) as ICustomError
-
-          if (result) {
-            const data = {
-              error: true,
-              code: result ? result.code : 500,
-              message: result ? result.msg : (
-                err.isAxiosError ?
-                  defaultErrorMessage :
-                  err.message
-              )
-            }
-
-            res.send(
-              this.clean(data)
-            )
-          } else {
-            const data = {
-              error: true,
-              code: err.code ?? 500,
-              message: err.isAxiosError ?
-                defaultErrorMessage :
-                err.message
-            }
-  
-            res.send(
-              this.clean(data)
-            )
           }
+
+          const code = err.code && err.code >= 900 ?
+            400 :
+            err.code ?? 500,
+            message = err.isAxiosError ?
+              'Internal API Error. Please contact admins about this.' :
+              err.message ?? 'Unknown error.'
+
+          res.statusCode = isNaN(code) ? 400 : code
+
+          return res.send(
+            this.clean(
+              {
+                error: true,
+                code: err.code ?? 500,
+                message
+              }
+            )
+          )
         }
       }
     )
   }
 
-  public async onError(code: any): Promise<ICustomError | void>  {}
+  public async onRequest(_req: ClientRequest, _res: HttpRes): Promise<PathReturnable | void> {}
 
-  public async onRequest(_req: HttpReq, _res: HttpRes): Promise<PathReturnable | void> {}
+  public get admin() {
+    return this._user as Admin
+  }
+
+  public get user() {
+    return this._user as User
+  }
+  
+  public get rider() {
+    return this._user as Rider
+  }
+
+  public get token() {
+    return this._token
+  }
 }
 
 export default Path

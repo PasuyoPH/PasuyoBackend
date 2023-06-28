@@ -1,5 +1,5 @@
 import HttpServer from '../../base/HttpServer'
-import { ProtocolSendTypes } from '../../types/v2/ws/Protocol'
+import { ProtocolSendTypes } from '../../types/ws/Protocol'
 
 class OpenEvent {
   constructor(public server: HttpServer) {}

@@ -6,88 +6,44 @@ import cors from 'cors'
 
 // Routes
 import DefaultRoute from './src/routes/Default'
-
-// Auth related
-import RegisterCustomer from './src/routes/auth/RegisterCustomer'
-import AuthCustomer from './src/routes/auth/AuthCustomer'
-import AuthTest from './src/routes/auth/AuthTest'
-import VerifyToken from './src/routes/auth/VerifyToken'
-
-// User related
+import AuthUser from './src/routes/auth/AuthUser'
+import AuthCreate from './src/routes/auth/AuthCreate'
+import GetRiderJobs from './src/routes/rider/GetRiderJobs'
+import GetUserAddresses from './src/routes/addresses/GetUserAddresses'
+import NewUserAddress from './src/routes/addresses/NewUserAddress'
+import DeleteUserAddress from './src/routes/addresses/DeleteUserAddress'
+import GetServices from './src/routes/GetServices'
+import CreateJob from './src/routes/job/CreateJobPreview'
+import CalculateUserDistance from './src/routes/distance/CalculateUserDistance'
+import CalculateRiderDistance from './src/routes/distance/CalculateRiderDistance'
+import FinalizeJob from './src/routes/job/FinalizeJob'
+import GetUserAddressesById from './src/routes/addresses/GetUserAddressesById'
+import AcceptJob from './src/routes/job/AcceptJob'
+import CompleteJob from './src/routes/job/CompleteJob'
+import GetRiderCurrentJob from './src/routes/rider/GetRiderCurrentJob'
+import UpdateJobStatus from './src/routes/job/UpdateJobStatus'
+import UpdateRiderProfile from './src/routes/rider/UpdateRiderProfile'
+import UpdateUserProfile from './src/routes/user/UpdateUserProfile'
+import GetRiderHistory from './src/routes/rider/GetRiderHistory'
+import GetJob from './src/routes/job/GetJob'
+import GetJobAddresses from './src/routes/job/GetJobAddresses'
+import ViewJobs from './src/routes/job/ViewJobs'
 import GetUser from './src/routes/user/GetUser'
-
-// Rider related
-import AuthRider from './src/routes/rider/AuthRider'
-import RegisterRider from './src/routes/rider/RegisterRider'
-
-// Rate related
-import RateRider from './src/routes/rate/RateRider'
-
-// jobs related
-import CreateJob from './src/routes/job/CreateJob'
-import GetCustomerJobs from './src/routes/job/GetCustomerJobs'
-
-// v2
-import V2AuthCreate from './src/routes/v2/auth/Create'
-import V2GetJobs from './src/routes/v2/rider/Jobs'
-import V2GetAddresses from './src/routes/v2/address/GetAddresses'
-import V2AuthUser from './src/routes/v2/auth/AuthUser'
-import V2NewAddress from './src/routes/v2/address/NewAddress'
-import V2DeleteAddress from './src/routes/v2/address/DeleteAddress'
-import V2GetServices from './src/routes/v2/GetServices'
-import V2GetDeliveryFees from './src/routes/v2/fees/GetDeliveryFees'
-import V2CreateJob from './src/routes/v2/job/Create'
-import V2CalculateDistance from './src/routes/v2/distance/Calculate'
-import V2TestPushNotif from './src/routes/v2/tests/PushNotif'
-import V2FinalizeJob from './src/routes/v2/job/Finalize'
-import V2GetAddressesById from './src/routes/v2/address/GetAddressesById'
-import V2AcceptJob from './src/routes/v2/job/Accept'
-import V2CompeleteJob from './src/routes/v2/job/Complete'
-import V2SetToken from './src/routes/v2/SetToken'
-import V2DeleteToken from './src/routes/v2/DeleteToken'
-import V2GetCurrentJob from './src/routes/v2/rider/Job'
-import V2UpdateStatus from './src/routes/v2/job/UpdateStatus'
-import V2UpdateProfile from './src/routes/v2/user/UpdateProfile'
-import V2SetGeo from './src/routes/v2/rider/SetGeo'
-import V2GetRiderHistory from './src/routes/v2/rider/History'
-import V2GetJob from './src/routes/v2/job/GetJob'
-import V2GetJobAddress from './src/routes/v2/job/Address'
-import V2ViewJobs from './src/routes/v2/rider/ViewJobs'
-import V2GetRiderFee from './src/routes/v2/job/GetRiderFee'
-import V2OptInLocation from './src/routes/v2/rider/OptInLocation'
-import V2DeleteJob from './src/routes/v2/job/DeleteJob'
-import V2GetUser from './src/routes/v2/user/GetUser'
-import V2GetNotifications from './src/routes/v2/notifications/GetNotifications'
-import V2DeleteNotification from './src/routes/v2/notifications/DeleteNotification'
-import V2AddNotification from './src/routes/v2/notifications/AddNotification'
-import V2GetDrafts from './src/routes/v2/drafts/GetDrafts'
-import V2DeleteDraft from './src/routes/v2/drafts/DeleteDraft'
-import V2GetUserJobs from './src/routes/v2/user/GetJobs'
-import V2GetUserJob from './src/routes/v2/user/GetUserJob'
-import V2AdminVerifyToken from './src/routes/admin/VerifyToken'
-import V2GetLoadRequests from './src/routes/admin/GetLoadRequests'
-import V2ApproveCredits from './src/routes/admin/ApproveCredits'
-import V2RiderRequestLoad from './src/routes/v2/rider/RequestLoad'
-import V2RiderUploadID from './src/routes/v2/rider/UploadId'
-import V2VerifyRider from './src/routes/admin/VerifyRider'
-import V2AdminGetUnverifiedRiders from './src/routes/admin/GetUnverifiedRiders'
-import V2GetPromos from './src/routes/v2/GetPromos'
-import V2AdminGetRiders from './src/routes/admin/GetRiders'
-import V2AdminModifyRider from './src/routes/admin/ModifyRider'
-import V2AdminModifyCredits from './src/routes/admin/ModifyCredits'
-import V2AdminDeleteRider from './src/routes/admin/DeleteRider'
-import V2GetVersion from './src/routes/v2/Version'
-import V2AdminGetUsers from './src/routes/admin/GetUsers'
-import V2GetHistory from './src/routes/v2/user/GetHistory'
-import V2ModifyAddress from './src/routes/v2/address/ModifyAddress'
-
-// v3 routes
-import V3CreateAdmin from './src/routes/v3/admin/Create'
-import V3AuthAdmin from './src/routes/v3/admin/Auth'
-import V3GetAdminSelf from './src/routes/v3/admin/GetSelf'
-import V3VerifyRider from './src/routes/v3/admin/Verifyer/VerifyRider'
-import V3ModifyCredits from './src/routes/v3/admin/Accounting/ModifyCredits'
-import V3AdminGetRiders from './src/routes/v3/admin/Riders'
+import GetRider from './src/routes/rider/GetRider'
+import GetPromos from './src/routes/GetPromos'
+import GetUserJobs from './src/routes/user/GetUserJobs'
+import GetUserDrafts from './src/routes/user/GetUserDrafts'
+import GetUserHistory from './src/routes/user/GetUserHistory'
+import EditUserAddress from './src/routes/addresses/EditUserAddress'
+import GetAddressUsed from './src/routes/job/GetAddressUsed'
+import GetNotifications from './src/routes/notifications/GetNotifications'
+import GetRiderFeeForJob from './src/routes/job/GetRiderFeeForJob'
+import GetAddressUsedRider from './src/routes/job/GetAddressUsedRider'
+import GetJobAuthor from './src/routes/job/GetJobAuthor'
+import RiderOptIn from './src/routes/rider/RiderOptIn'
+import FetchRiders from './src/routes/FetchRiders'
+import GetJobRider from './src/routes/job/GetJobRider'
+import UpdateUserExpoToken from './src/routes/expo-token/UpdateUserExpoToken'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -104,30 +60,62 @@ const main = async () => {
     cors()
   )
 
+  // General
   await http.register(DefaultRoute)
+  await http.register(GetServices)
+  await http.register(GetPromos)
+  await http.register(FetchRiders)
 
-  // auth related
-  await http.register(RegisterCustomer)
-  await http.register(AuthCustomer)
-  await http.register(AuthTest)
-  await http.register(VerifyToken)
+  // Authentication
+  await http.register(AuthUser)
+  await http.register(AuthCreate)
 
-  // user related
+  // User
+  await http.register(GetUserAddresses)
+  await http.register(NewUserAddress)
+  await http.register(DeleteUserAddress)
+  await http.register(EditUserAddress)
+  await http.register(GetUserAddressesById)
   await http.register(GetUser)
+  await http.register(GetUserJobs)
+  await http.register(GetUserDrafts)
+  await http.register(GetUserHistory)
+  await http.register(GetAddressUsed)
+  await http.register(UpdateUserProfile)
   
-  // riders related
-  await http.register(AuthRider)
-  await http.register(RegisterRider)
-
-  // rates related
-  await http.register(RateRider)
-
-  // jobs related
+  // Jobs?
+  await http.register(GetRiderJobs)
   await http.register(CreateJob)
-  await http.register(GetCustomerJobs)
+  await http.register(FinalizeJob)
+  await http.register(AcceptJob)
+  await http.register(CompleteJob)
+  await http.register(UpdateJobStatus)
+  await http.register(GetRiderFeeForJob)
+  await http.register(GetJobAddresses)
+  await http.register(GetAddressUsedRider)
+  await http.register(GetJobAuthor)
+  await http.register(GetJobRider)
+  await http.register(GetJob)
+  await http.register(ViewJobs)
 
+  // Distance
+  await http.register(CalculateUserDistance)
+  await http.register(CalculateRiderDistance)
+
+  // Rider
+  await http.register(GetRiderCurrentJob)
+  await http.register(UpdateRiderProfile)
+  await http.register(GetRiderHistory)
+  await http.register(GetRider)
+  await http.register(RiderOptIn)
+
+  // User tokens
+  await http.register(UpdateUserExpoToken)
+
+  await http.register(GetNotifications)
+  
   // v2
-  await http.register(V2GetRiderFee)
+  /*await http.register(V2GetRiderFee)
   await http.register(V2AuthCreate)
   await http.register(V2GetJobs)
   await http.register(V2GetAddresses)
@@ -135,7 +123,7 @@ const main = async () => {
   await http.register(V2NewAddress)
   await http.register(V2DeleteAddress)
   await http.register(V2GetServices)
-  await http.register(V2GetDeliveryFees)
+  await http.register(V2GetDeliveryFees) (UNUSED)
   await http.register(V2CreateJob)
   await http.register(V2CalculateDistance)
   await http.register(V2TestPushNotif)
@@ -189,7 +177,7 @@ const main = async () => {
 
   await http.register(V3VerifyRider)
   await http.register(V3ModifyCredits)
-  await http.register(V3AdminGetRiders)
+  await http.register(V3AdminGetRiders)*/
 
   try {
     await http.ready()

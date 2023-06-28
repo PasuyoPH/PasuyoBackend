@@ -1,16 +1,15 @@
 import Path from '../../base/Path'
-import { IRoute } from '../../types/Http'
+import PathPermissions from '../../types/path/PathPermissions'
 
-class GetUser extends Path implements IRoute {
+class GetUser extends Path {
   public path = '/user'
-  public requireUserToken = true
+  public permissions: PathPermissions = {
+    check: 'user'
+  }
 
   public async onRequest() {
-    const user = {...this.user}
-    delete user.pin
-
     return {
-      value: user,
+      value: this.user,
       code: 200
     }
   }

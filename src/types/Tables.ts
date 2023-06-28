@@ -1,4 +1,4 @@
-const Tables = {
+/*const Tables = {
   Customers: 'customers',
   Riders: 'riders',
   Deliveries: 'deliveries',
@@ -22,6 +22,20 @@ const Tables = {
   v3: {
     Admins: 'v3_admins'
   }
+}*/
+
+// New data:
+const Tables = {
+  Admins: 'admins',
+  Users: 'users',
+  Riders: 'riders',
+  Address: 'addresses',
+  AddressUsed: 'address_used',
+  Jobs: 'jobs',
+  Referral: 'referral_codes',
+  Notifications: 'notifications',
+  Promos: 'promos',
+  ExpoTokens: 'expo_tokens'
 }
 
 export default Tables

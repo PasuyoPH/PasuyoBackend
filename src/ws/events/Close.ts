@@ -1,4 +1,3 @@
-import WebSocket from 'ws'
 import HttpServer from '../../base/HttpServer'
 
 class CloseEvent {

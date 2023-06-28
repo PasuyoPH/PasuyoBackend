@@ -2,62 +2,58 @@ import restana from 'restana'
 import { IConfig } from '../types/Config'
 
 import Path from './Path'
-import Utils from '../Utils'
+import Utils from '../utils'
 
 import moment from 'moment'
 import knex, { Knex } from 'knex'
 
 import WebSocket from 'ws'
-import OpenEvent from '../ws/events/Open'
+//import OpenEvent from '../ws/events/Open'
 
-import MessageEvent from '../ws/events/Message'
-import { GeoCacheData } from '../types/v2/Geo'
+//import MessageEvent from '../ws/events/Message'
+//import { GeoCacheData } from '../types/v2/Geo'
 
-import CloseEvent from '../ws/events/Close'
+//import CloseEvent from '../ws/events/Close'
 import Expo from 'expo-server-sdk'
 import { S3 } from '@aws-sdk/client-s3'
-import Storages from '../types/v2/Storages'
-
-// Schemas
-import CustomerSchema from '../schemas/Customer'
-import DeliveriesSchema from '../schemas/Deliveries'
-
-import RiderSchema from '../schemas/Rider'
-import RatesSchema from '../schemas/Rates'
+import Storages from '../types/Storages'
 
 import JobSchema from '../schemas/Job'
-
-// v2 Schemas
-import { V2RiderSchema, V2UserSchema } from '../schemas/v2/User'
-import V2AddressSchema from '../schemas/v2/Address'
-import V2JobSchema from '../schemas/v2/Job'
-import V2TokensSchema, { V2UserTokensSchema } from '../schemas/v2/Tokens'
-import V2ReferralSchema from '../schemas/v2/Referrals'
-import V2NotificationsSchema from '../schemas/v2/Notifications'
-import V2TransactionSchema from '../schemas/v2/Transaction'
-import V2LoadRequestSchema from '../schemas/v2/LoadRequest'
-import V2PromosSchema from '../schemas/v2/Promos'
-import V2MerchantSchema from '../schemas/v2/Merchant'
-
-// v3 schemas
-import V3AdminSchema from '../schemas/v3/Admin'
+import AddressSchema from '../schemas/Address'
+import AddressUsedSchema from '../schemas/AddressUsed'
+import AdminSchema from '../schemas/Admins'
+import ReferralSchema from '../schemas/Referral'
+import RiderSchema from '../schemas/Rider'
+import UserSchema from '../schemas/User'
+import Schema from './Schema'
+import PromoSchema from '../schemas/Promos'
+import NotificationSchema from '../schemas/Notification'
+import OpenEvent from '../ws/events/Open'
+import CloseEvent from '../ws/events/Close'
+import ExpoTokenSchema from '../schemas/ExpoToken'
 
 class HttpServer {
   public restana = restana()
   public routes: Map<string, Path> = new Map()
   public PROCESS_CWD = process.cwd()
-  public utils = new Utils(this)
+  //public utils = new Utils(this)
   public cache = {
     ttl: 5, // in minutes
     data: new Map<string, { expiry: number, data: Buffer } | undefined>() // cache url reponses instead
   }
   public db: Knex<any, unknown[]>
   public ws: WebSocket
-  public geo: Map<string, GeoCacheData> = new Map()
+  //public geo: Map<string, GeoCacheData> = new Map()
   public expo = new Expo()
   public storages: Storages
 
+  // new content
+  public utils = new Utils(this)
+
   constructor(public config: IConfig) {
+    if (this.config.ws.enabled)
+      this.setupWebsocket()
+
     this.db = knex(
       {
         client: 'pg',
@@ -72,9 +68,6 @@ class HttpServer {
         }
       }
     )
-    
-    if (this.config.ws.enabled)
-      this.setupWebsocket()
 
     this.setupDatabase()
     this.storages = {
@@ -110,66 +103,19 @@ class HttpServer {
     }
   }
 
-  public async setupWebsocket() {
-    this.ws = new WebSocket(`ws://${this.config.ws.address}:${this.config.ws.port}`)
-
-    const openEvent = new OpenEvent(this),
-      messageEvent = new MessageEvent(this),
-      closeEvent = new CloseEvent(this)
-
-    const reconnect = () => {
-      setImmediate(
-        () => setTimeout(
-          () => this.setupWebsocket(),
-          this.config.ws.interval
-        )
-      )
-    }
-
-    this.ws
-      .on('open', openEvent.handle.bind(openEvent))
-      .on('message', messageEvent.handle.bind(messageEvent))
-      .on(
-        'close',
-        async () => {
-          const callback = closeEvent.handle.bind(closeEvent)
-          callback()
-
-          await this.log('Connection closed. Attempting to reconnect...')
-          reconnect()
-        }
-      )
-      .on('error', () => {})
-  }
-
   private async setupDatabase() {
-    const V2tables = [
-        V2RiderSchema,
-        V2UserSchema,
-        V2AddressSchema,
-        V2JobSchema,
-        V2TokensSchema,
-        V2UserTokensSchema,
-        V2ReferralSchema,
-        V2NotificationsSchema,
-        V2TransactionSchema,
-        V2LoadRequestSchema,
-        V2PromosSchema,
-        V2MerchantSchema
-      ],
-      V3tables = [
-        V3AdminSchema
-      ],
-      tables = [
-        CustomerSchema,
-        DeliveriesSchema,
-        RiderSchema,
-        RatesSchema,
-        JobSchema,
-
-        ...V2tables,
-        ...V3tables
-      ]
+    const tables: (typeof Schema)[] = [
+      AddressSchema,
+      AddressUsedSchema,
+      AdminSchema,
+      JobSchema,
+      ReferralSchema,
+      RiderSchema,
+      UserSchema,
+      PromoSchema,
+      NotificationSchema,
+      ExpoTokenSchema
+    ]
 
     for (const Schema of tables) {
       const tableExists = await this.db.schema.hasTable(Schema.tableName)
@@ -181,18 +127,6 @@ class HttpServer {
     }
 
     //await this.test()
-  }
-
-  public async test() {
-    await this.utils.createUser(
-      {
-        email: 'alexander.m9673@gmail.com',
-        phone: '09456282634',
-
-        fullName: 'Alex',
-        pin: '9673'
-      }
-    )
   }
 
   public async log(...content: any[]) {
@@ -216,30 +150,6 @@ class HttpServer {
     return this.restana.start(this.config.http.port)
   }
 
-  // perform user account tests
-  public async tests() {
-    const randEmail = await this.utils.genUID(4),
-      randId = await this.utils.genUID(2),
-      randomPhone = Math.floor(Math.random() * 999999999) + 1000000000,
-      randomPin = Math.floor(Math.random() * 999) + 1000
-
-    if (this.config.debug)
-      await this.log('[DEBUG]: Call test()')
-
-    // create user account
-    await this.utils.user.create(
-      {
-        user: {
-          email: randEmail + '@pasuyo.express',
-          fullName: 'FirstName LastName - ' + randId,
-          phone: randomPhone.toString(),
-          pin: randomPin.toString()
-        },
-        rider: true
-      }
-    )
-  }
-
   public async register(path: typeof Path) {
     const pathInstance  = new path()
     pathInstance.server = this
@@ -253,6 +163,36 @@ class HttpServer {
       'added with method:',
       pathInstance.method.toUpperCase()
     )
+  }
+
+  public async setupWebsocket() {
+    this.ws = new WebSocket(`ws://${this.config.ws.address}:${this.config.ws.port}`)
+
+    const openEvent = new OpenEvent(this),
+      closeEvent = new CloseEvent(this)
+
+    const reconnect = () => {
+      setImmediate(
+        () => setTimeout(
+          () => this.setupWebsocket(),
+          this.config.ws.interval
+        )
+      )
+    }
+
+    this.ws
+      .on('open', openEvent.handle.bind(openEvent))
+      .on(
+        'close',
+        async () => {
+          const callback = closeEvent.handle.bind(closeEvent)
+          callback()
+
+          await this.log('Connection closed. Attempting to reconnect...')
+          reconnect()
+        }
+      )
+      .on('error', () => {})
   }
 }
 

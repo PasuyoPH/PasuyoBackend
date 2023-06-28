@@ -1,36 +1,19 @@
-import Schema from '../base/Schema'
+import Tables from '../types/Tables'
+import { RiderRanks, RiderStates } from '../types/database/Rider'
+import UserSchema from './User'
 
-class RiderSchema extends Schema {
-  public static tableName = 'riders'
+class RiderSchema extends UserSchema {
+  public static tableName: string = Tables.Riders
 
   public async handle() {
-    this.table.string('uid', 32)
-      .notNullable()
-      .primary()
+    super.handle()
 
-    this.table.text('email')
-      .notNullable()
-      .unique()
-
-    this.table.text('phone')
-      .notNullable()
-      .unique()
-
-    this.table.text('fullName')
-      .notNullable()
-
-    this.table.string('pin', 4)
-      .notNullable()
-
-    this.table.boolean('verified')
-    //this.table.tinyint('status')
-    this.table.text('referral')
-      .defaultTo('pasuyo')
-
-    this.table.tinyint('role')
-      .notNullable()
-
-    this.table.text('id') // id url
+    this.table.boolean('verified').defaultTo(false)
+    this.table.tinyint('state').defaultTo(RiderStates.RIDER_ONLINE)
+    this.table.tinyint('rank').defaultTo(RiderRanks.RANK_BRONZE)
+    this.table.double('xp').defaultTo(0.00)
+    this.table.boolean('optInLocation').defaultTo(false)
+    this.table.text('id')
   }
 }
 

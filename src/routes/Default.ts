@@ -1,13 +1,9 @@
 import Path from '../base/Path'
-import { IRoute } from '../types/Http'
 
-class DefaultRoute extends Path implements IRoute {
+class DefaultRoute extends Path {
   public async onRequest() {
     return {
-      value: {
-        v: this.server.config.apiVersion,
-        t: Date.now()
-      },
+      value: 'ok',
       code: 200
     }
   }

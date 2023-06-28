@@ -1,23 +1,33 @@
 import Schema from '../base/Schema'
+import Tables from '../types/Tables'
+import { JobStatus } from '../types/database/Job'
 
 class JobSchema extends Schema {
-  public static tableName = 'jobs'
-
+  public static tableName = Tables.Jobs
+  
   public async handle() {
-    this.table.string('uid', 32)
-      .notNullable()
-      .primary()
+    this.uid('uid').unique()
+    this.uid('user')
+    this.table.text('rider')
+    this.table.tinyint('type')
+    this.table.tinyint('status').defaultTo(JobStatus.PROCESSED)
+    this.table.bigint('createdAt').notNullable()
 
-    this.table.string('creator', 32)
-      .notNullable()
+    this.table.bigint('startedAt')
+    this.table.bigint('finishedAt')
 
-    this.table.string('rider', 32)
+    this.table.boolean('draft').defaultTo(false)
+    
+    this.table.double('distance').defaultTo(0.00)
+    this.table.double('fee').defaultTo(0.00)
+    this.table.double('eta').defaultTo(0.00)
 
-    this.table.integer('type', 1)
-      .notNullable()
+    this.table.double('riderFee')
 
-    this.table.binary('data')
-      .notNullable()
+    this.table.text('item')
+    this.table.double('weight')
+
+    this.table.text('proof')
   }
 }
 
