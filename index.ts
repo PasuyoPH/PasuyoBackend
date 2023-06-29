@@ -44,6 +44,10 @@ import RiderOptIn from './src/routes/rider/RiderOptIn'
 import FetchRiders from './src/routes/FetchRiders'
 import GetJobRider from './src/routes/job/GetJobRider'
 import UpdateUserExpoToken from './src/routes/expo-token/UpdateUserExpoToken'
+import AddRiderCredits from './src/routes/admin/AddRiderCredits'
+import AdminVerifyRider from './src/routes/admin/AdminVerifyRider'
+import AdminGetRiders from './src/routes/admin/GetRiders'
+import GetAdminSelf from './src/routes/admin/GetAdminSelf'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -113,6 +117,12 @@ const main = async () => {
   await http.register(UpdateUserExpoToken)
 
   await http.register(GetNotifications)
+
+  // admin
+  await http.register(AddRiderCredits)
+  await http.register(AdminVerifyRider)
+  await http.register(AdminGetRiders)
+  await http.register(GetAdminSelf)
   
   // v2
   /*await http.register(V2GetRiderFee)

@@ -17,8 +17,10 @@ import Tables from '../types/Tables'
 import NotificationUtils from './Notification'
 import WsUtils from './Websocket'
 import { Rider } from '../types/database/Rider'
+import AdminUtils from './Admin'
 
 class Utils {
+  public admins: AdminUtils
   public tokens: TokenUtils
   public users: UsersUtils
   public crypto: CryptoUtils
@@ -30,6 +32,7 @@ class Utils {
   public ws: WsUtils
 
   constructor(public server: HttpServer) {
+    this.admins = new AdminUtils(this.server)
     this.tokens = new TokenUtils(this.server)
     this.users = new UsersUtils(this.server)
     this.crypto = new CryptoUtils(this.server)
