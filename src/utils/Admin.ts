@@ -1,10 +1,17 @@
 import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
+import LoadRequest from '../types/database/LoadRequest'
 import { Rider } from '../types/database/Rider'
 import { ProtocolSendTypes } from '../types/ws/Protocol'
 
 class AdminUtils {
   constructor(public server: HttpServer) {}
+
+  public async approveLoad(uid: string) {
+    return await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+      .delete()
+      .where({ uid })
+  }
 
   public async updateRiderDataToWebSocket(rider: Rider) {
     return await this.server.utils.ws.send(

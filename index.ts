@@ -48,6 +48,8 @@ import AddRiderCredits from './src/routes/admin/AddRiderCredits'
 import AdminVerifyRider from './src/routes/admin/AdminVerifyRider'
 import AdminGetRiders from './src/routes/admin/GetRiders'
 import GetAdminSelf from './src/routes/admin/GetAdminSelf'
+import AdminApproveLoad from './src/routes/admin/AdminApproveLoad'
+import RiderRequestLoad from './src/routes/rider/RiderRequestLoad'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -112,6 +114,7 @@ const main = async () => {
   await http.register(GetRiderHistory)
   await http.register(GetRider)
   await http.register(RiderOptIn)
+  await http.register(RiderRequestLoad)
 
   // User tokens
   await http.register(UpdateUserExpoToken)
@@ -123,6 +126,7 @@ const main = async () => {
   await http.register(AdminVerifyRider)
   await http.register(AdminGetRiders)
   await http.register(GetAdminSelf)
+  await http.register(AdminApproveLoad)
   
   // v2
   /*await http.register(V2GetRiderFee)

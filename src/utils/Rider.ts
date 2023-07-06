@@ -6,6 +6,15 @@ import { Rider } from '../types/database/Rider'
 class RiderUtils {
   constructor(public server: HttpServer) {}
 
+  public async requestLoad(uid: string, file: Buffer) {
+    const fileUrl = await this.server.utils.uploadFile(
+      {
+        storage: 'load',
+        file
+      }
+    )
+  }
+
   public async optIn(uid: string, status: boolean) {
     const result = (
       await this.server.db.table<Rider>(Tables.Riders)

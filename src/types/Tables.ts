@@ -35,7 +35,8 @@ const Tables = {
   Referral: 'referral_codes',
   Notifications: 'notifications',
   Promos: 'promos',
-  ExpoTokens: 'expo_tokens'
+  ExpoTokens: 'expo_tokens',
+  LoadRequest: 'load_request'
 }
 
 export default Tables

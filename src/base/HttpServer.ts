@@ -31,6 +31,7 @@ import NotificationSchema from '../schemas/Notification'
 import OpenEvent from '../ws/events/Open'
 import CloseEvent from '../ws/events/Close'
 import ExpoTokenSchema from '../schemas/ExpoToken'
+import LoadRequestSchema from '../schemas/LoadRequest'
 
 class HttpServer {
   public restana = restana()
@@ -114,7 +115,8 @@ class HttpServer {
       UserSchema,
       PromoSchema,
       NotificationSchema,
-      ExpoTokenSchema
+      ExpoTokenSchema,
+      LoadRequestSchema
     ]
 
     for (const Schema of tables) {
