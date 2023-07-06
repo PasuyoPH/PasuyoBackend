@@ -1,4 +1,6 @@
+import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
+import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Admin from '../types/database/Admin'
 import LoadRequest from '../types/database/LoadRequest'
@@ -20,7 +22,11 @@ class AdminUtils {
       .where({ username, password })
       .first()
 
-    if (!admin) return null
+    if (!admin)
+      throw new HttpError(
+        HttpErrorCodes.ADMIN_INVALID_ACCOUNT,
+        'Invalid admin account provided. Please try again.'
+      )
     else return await this.server.utils.tokens.encrypt(
       { uid: admin.uid, password },
       86400

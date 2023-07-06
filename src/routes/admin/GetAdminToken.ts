@@ -1,14 +1,9 @@
 import ClientRequest from '../../base/ClientRequest'
 import Path from '../../base/Path'
-import PathPermissions from '../../types/path/PathPermissions'
 
 class GetAdminToken extends Path {
   public path = '/admin/@me/token'
   public method = 'post'
-  public permissions: PathPermissions = {
-    check: 'admin',
-    role: []
-  }
 
   public async onRequest(req: ClientRequest) {
     const username = req.body<string>('username'),
