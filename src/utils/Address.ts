@@ -77,18 +77,15 @@ class AddressUtils {
    * @param uids The ids of the addresses to fetch.
    */
   public async get(uids: string[]): Promise<Address[]> {
-    if (uids.length < 1)
+    if (uids.length <= 1)
       return await this.server.db.table<Address>(Tables.Address)
         .select('*')
         .where({ uid: uids[0] })
-    else return this.server.db.table<Address>(Tables.Address)
+    else return await this.server.db.table<Address>(Tables.Address)
       .select('*')
       .whereIn('uid', uids)
       .orderByRaw(
-        this.server.db.raw(
-          'array_position(ARRAY[:uids], uid)',
-          { uids }
-        )
+        `CASE ${uids.map((id, idx) => `WHEN uid = '${id}' THEN ${idx}`).join(' ')} END`
       )
   }
 
