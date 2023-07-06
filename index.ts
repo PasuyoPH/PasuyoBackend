@@ -50,6 +50,7 @@ import AdminGetRiders from './src/routes/admin/GetRiders'
 import GetAdminSelf from './src/routes/admin/GetAdminSelf'
 import AdminApproveLoad from './src/routes/admin/AdminApproveLoad'
 import RiderRequestLoad from './src/routes/rider/RiderRequestLoad'
+import GetAdminToken from './src/routes/admin/GetAdminToken'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -127,6 +128,7 @@ const main = async () => {
   await http.register(AdminGetRiders)
   await http.register(GetAdminSelf)
   await http.register(AdminApproveLoad)
+  await http.register(GetAdminToken)
   
   // v2
   /*await http.register(V2GetRiderFee)

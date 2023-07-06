@@ -1,5 +1,6 @@
 import HttpServer from '../base/HttpServer'
 import Tables from '../types/Tables'
+import Admin from '../types/database/Admin'
 import LoadRequest from '../types/database/LoadRequest'
 import { Rider } from '../types/database/Rider'
 import { ProtocolSendTypes } from '../types/ws/Protocol'
@@ -11,6 +12,19 @@ class AdminUtils {
     return await this.server.db.table<LoadRequest>(Tables.LoadRequest)
       .delete()
       .where({ uid })
+  }
+
+  public async getAdminToken(username: string, password: string) {
+    const admin = await this.server.db.table<Admin>(Tables.Admins)
+      .select('uid')
+      .where({ username, password })
+      .first()
+
+    if (!admin) return null
+    else return await this.server.utils.tokens.encrypt(
+      { uid: admin.uid, password },
+      86400
+    )
   }
 
   public async updateRiderDataToWebSocket(rider: Rider) {
