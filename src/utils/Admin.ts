@@ -43,11 +43,11 @@ class AdminUtils {
   }
 
   public async setRiderCredits(uid: string, amount: number) {
-    if (!isNaN(amount)) amount = 0.00 // should throw error instead
+    if (isNaN(amount)) amount = 0.00 // should throw error instead
     const rider = (
       await this.server.db.table<Rider>(Tables.Riders)
         .where('uid', uid)
-        .update('credits', amount)
+        .increment('credits', amount)
         .returning('*')
     )[0]
 
