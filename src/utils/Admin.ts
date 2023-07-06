@@ -47,7 +47,7 @@ class AdminUtils {
     const rider = (
       await this.server.db.table<Rider>(Tables.Riders)
         .where('uid', uid)
-        .increment('credits', amount)
+        .update('credits', amount)
         .returning('*')
     )[0]
 
