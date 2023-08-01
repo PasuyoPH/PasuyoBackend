@@ -557,6 +557,7 @@ class JobUtils {
         status: JobStatus.PROCESSED,
         createdAt: dateNow,
         draft: true,
+        cashPickup: data.cashPickup,
         ...distance
       }
 

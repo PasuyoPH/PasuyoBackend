@@ -19,19 +19,7 @@ class Path {
   public path   = '/'
   public method = 'get'
 
-  //public adminOnly = false
   public server: HttpServer
-
-  //public deflate = promisify(zlib.deflate)
-  //public inflate = promisify(zlib.inflate)
-
-  //public cache = false
-  //public captcha = false
-
-  //public requireUserToken = false
-  //public mustBeVerifiedRider = false
-
-  //public adminUser: V3Admin = null
 
   // Reworked
   public permissions: PathPermissions = null

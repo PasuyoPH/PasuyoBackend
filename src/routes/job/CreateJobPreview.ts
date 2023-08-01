@@ -15,6 +15,7 @@ class CreateJob extends Path {
 
   public async onRequest(req: ClientRequest) {
     const data = req.body<NewJobData>('job')
+    console.log(data)
     return {
       value: await this.server.utils.jobs.create(data, this.user.uid),
       code: 200

@@ -1,4 +1,5 @@
 import Schema from '../base/Schema'
+import { PickupPaymentTypes } from '../types/Services'
 import Tables from '../types/Tables'
 import { JobStatus } from '../types/database/Job'
 
@@ -28,6 +29,12 @@ class JobSchema extends Schema {
     this.table.double('weight')
 
     this.table.text('proof')
+    this.table.tinyint('cashPickup').defaultTo(PickupPaymentTypes.DROPOFF).checkBetween(
+      [
+        PickupPaymentTypes.DROPOFF,
+        PickupPaymentTypes.PICKUP
+      ]
+    )
   }
 }
 

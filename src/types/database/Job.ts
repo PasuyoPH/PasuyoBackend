@@ -1,3 +1,4 @@
+import { PickupPaymentTypes } from '../Services'
 import Tables from '../Tables'
 
 enum JobTypes {
@@ -43,6 +44,7 @@ interface Job {
   weight?: string
 
   proof?: string // evidence of completion
+  cashPickup?: PickupPaymentTypes
 }
 
 export default Job

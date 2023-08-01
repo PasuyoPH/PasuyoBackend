@@ -1,8 +1,19 @@
 import { JobTypes } from './database/Job'
 
+enum PickupPaymentTypes {
+  DROPOFF,
+  PICKUP
+}
+
 enum PasuyoFormTypes {
   INPUT,
-  SELECT_ADDRESS
+  SELECT_ADDRESS,
+  SELECT
+}
+
+interface SelectFormInput {
+  value: string | number
+  label: string
 }
 
 interface PasuyoForm {
@@ -14,6 +25,8 @@ interface PasuyoForm {
 
   label?: string
   numberOnly?: boolean
+
+  choices?: SelectFormInput[]
 }
 
 interface PasuyoFormStructure {
@@ -63,6 +76,26 @@ const Services: PasuyoService[] = [
           { key: 'toAddress', label: 'Deliver To', type: PasuyoFormTypes.SELECT_ADDRESS }
         ],
         row: true
+      },
+
+      {
+        content: [
+          {
+            key: 'cashPickup',
+            label: 'Where to pickup payment',
+            type: PasuyoFormTypes.SELECT,
+            choices: [
+              {
+                label: 'Dropoff',
+                value: PickupPaymentTypes.DROPOFF
+              },
+              {
+                label: 'Pickup',
+                value: PickupPaymentTypes.PICKUP
+              }
+            ]
+          }
+        ]
       }
     ],
 
@@ -127,5 +160,6 @@ export {
   PasuyoFormTypes,
   PasuyoService,
   
-  Services
+  Services,
+  PickupPaymentTypes
 }
