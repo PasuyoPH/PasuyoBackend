@@ -6,8 +6,8 @@ class UserSchema extends Schema {
 
   public async handle() {
     this.uid('uid').unique()
-    this.table.text('email').notNullable()
-    this.table.text('phone').notNullable()
+    this.table.text('email').notNullable().unique()
+    this.table.text('phone').notNullable().unique()
     this.table.text('fullName').notNullable()
     this.table.text('pin').notNullable()
     this.table.text('referral')

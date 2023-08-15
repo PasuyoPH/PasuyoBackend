@@ -3,6 +3,8 @@ import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import ExpoToken from '../types/database/ExpoToken'
+import Likes from '../types/database/Likes'
+import Merchant from '../types/database/Merchant'
 import Referral from '../types/database/Referral'
 import { Rider, RiderRanks, RiderStates } from '../types/database/Rider'
 import User from '../types/database/User'
@@ -10,6 +12,51 @@ import AuthCreateData from '../types/http/AuthCreateData'
 
 class UsersUtils {
   constructor(public server: HttpServer) {}
+
+  // get recommended merchants based on user
+  public async getRecommendedMerchants(uid: string) {
+    // fetch all user liked items
+    const likedItems = await this.server.db.table<Likes>(Tables.Likes)
+      .select('merchant')
+      .where('user', uid)
+
+    // let's combine our likes with the merchant score
+    const scoreData: { [key: string]: number } = {} // This is where score data is temporarily stored
+
+    // loop through user's liked items, and then calculate the necessary score based on likes first
+    for (const item of likedItems)
+      scoreData[item.merchant] = (scoreData[item.merchant] ?? 0) + 1
+
+    // Now, check if we have enough for a recommendation display
+    // Should be atleast 3 items to recommend
+    const merchantsIds = Object.keys(scoreData)
+    if (merchantsIds.length < 3) { // we don't have enough, we can instead just fill it with the merchants with top score
+      // get the amount of merchants needed, and then include the current ones we have in the array
+      const amountNeeded = 3 - merchantsIds.length,
+        // build a query that will get the merchant with most amount of sales, excluding those we already have.
+        merchants = await this.server.db.table<Merchant>(Tables.Merchant)
+          .select('*')
+          .orderByRaw('CASE WHEN uid IN (?) THEN 0 ELSE 1 END, sales DESC', [merchantsIds])
+          .limit(amountNeeded)
+
+      // return the result
+      return merchants
+    } else { // we have enough
+      // with this part, let's fetch all the merchants that got liked, and use that as a basis instead
+      const merchants = await this.server.db.table<Merchant>(Tables.Merchant)
+        .select('*')
+        .whereIn('uid', [...merchantsIds])
+
+      // now let's calculate the additional score for each merchant based on sales
+      for (const merchant of merchants)
+        scoreData[merchant.uid] += this.server.utils.math.calculateSalesToScore(merchant.sales)
+
+      // Now finally, let's sort the merchants based on their score from greatest to least
+      return merchants.sort(
+        (a, b) => scoreData[b.uid] - scoreData[a.uid]
+      )
+    }
+  }
 
   public async updateExpoToken(user: string, token: string) {
     return await this.server.db.table<ExpoToken>(Tables.ExpoTokens)
@@ -273,10 +320,10 @@ class UsersUtils {
    * @returns The auth token for authentication.
    */
   public async toToken(phone: string, pin: string, rider?: boolean) {
-    if (phone.startsWith('+63'))
+    if (phone?.startsWith('+63'))
       phone = phone.slice(3)
     
-    if (!phone.startsWith('0'))
+    if (!phone?.startsWith('0'))
       phone = '0' + phone
 
     const user = await this.server.db.table<User | Rider>(

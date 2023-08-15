@@ -51,6 +51,16 @@ import GetAdminSelf from './src/routes/admin/GetAdminSelf'
 import AdminApproveLoad from './src/routes/admin/AdminApproveLoad'
 import RiderRequestLoad from './src/routes/rider/RiderRequestLoad'
 import GetAdminToken from './src/routes/admin/GetAdminToken'
+import AddItemToMerchant from './src/routes/merchant/AddItem'
+import GetMerchantItems from './src/routes/merchant/GetItems'
+import GetOrders from './src/routes/orders/GetOrders'
+import GetMerchants from './src/routes/merchant/GetMerchants'
+import LikeMerchantItem from './src/routes/merchant/LikeMerchantItem'
+import GetRecommendedMerchants from './src/routes/user/GetRecommendedMerchants'
+import GetNewItems from './src/routes/merchant/GetNewItems'
+import GetMerchantItem from './src/routes/merchant/GetMerchantItem'
+import GetMerchant from './src/routes/merchant/GetMerchant'
+import GetItems from './src/routes/merchant/GetItemsbyIds'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -89,6 +99,7 @@ const main = async () => {
   await http.register(GetUserHistory)
   await http.register(GetAddressUsed)
   await http.register(UpdateUserProfile)
+  await http.register(GetRecommendedMerchants)
   
   // Jobs?
   await http.register(GetRiderJobs)
@@ -129,71 +140,19 @@ const main = async () => {
   await http.register(GetAdminSelf)
   await http.register(AdminApproveLoad)
   await http.register(GetAdminToken)
-  
-  // v2
-  /*await http.register(V2GetRiderFee)
-  await http.register(V2AuthCreate)
-  await http.register(V2GetJobs)
-  await http.register(V2GetAddresses)
-  await http.register(V2AuthUser)
-  await http.register(V2NewAddress)
-  await http.register(V2DeleteAddress)
-  await http.register(V2GetServices)
-  await http.register(V2GetDeliveryFees) (UNUSED)
-  await http.register(V2CreateJob)
-  await http.register(V2CalculateDistance)
-  await http.register(V2TestPushNotif)
-  await http.register(V2FinalizeJob)
-  await http.register(V2GetAddressesById)
-  await http.register(V2AcceptJob)
-  await http.register(V2CompeleteJob)
-  await http.register(V2SetToken)
-  await http.register(V2DeleteToken)
-  await http.register(V2GetCurrentJob)
-  await http.register(V2UpdateStatus)
-  await http.register(V2UpdateProfile)
-  await http.register(V2SetGeo)
-  await http.register(V2GetRiderHistory)
-  await http.register(V2GetJob)
-  await http.register(V2GetJobAddress)
-  await http.register(V2ViewJobs)
-  await http.register(V2OptInLocation)
-  await http.register(V2DeleteJob)
-  await http.register(V2GetHistory)
-  await http.register(V2GetUserJobs)
-  await http.register(V2GetUserJob)
-  await http.register(V2GetUser)
-  await http.register(V2GetNotifications)
-  await http.register(V2DeleteNotification)
-  await http.register(V2AddNotification)
-  await http.register(V2GetDrafts)
-  await http.register(V2DeleteDraft)
-  await http.register(V2RiderRequestLoad)
-  await http.register(V2RiderUploadID)
-  await http.register(V2GetPromos)
-  await http.register(V2GetVersion)
-  await http.register(V2ModifyAddress)
 
-  // admin only
-  await http.register(V2AdminVerifyToken)
-  await http.register(V2GetLoadRequests)
-  await http.register(V2ApproveCredits)
-  await http.register(V2VerifyRider)
-  await http.register(V2AdminGetUnverifiedRiders)
-  await http.register(V2AdminGetRiders)
-  await http.register(V2AdminModifyRider)
-  await http.register(V2AdminModifyCredits)
-  await http.register(V2AdminDeleteRider)
-  await http.register(V2AdminGetUsers)
+  // merchant
+  await http.register(AddItemToMerchant)
+  await http.register(GetMerchantItems)
+  await http.register(GetMerchants)
+  await http.register(LikeMerchantItem)
+  await http.register(GetNewItems)
+  await http.register(GetMerchantItem)
+  await http.register(GetMerchant)
+  await http.register(GetItems)
 
-  // v3
-  await http.register(V3CreateAdmin)
-  await http.register(V3AuthAdmin)
-  await http.register(V3GetAdminSelf)
-
-  await http.register(V3VerifyRider)
-  await http.register(V3ModifyCredits)
-  await http.register(V3AdminGetRiders)*/
+  // orders
+  await http.register(GetOrders)
 
   try {
     await http.ready()

@@ -40,6 +40,10 @@ enum HttpErrorCodes {
   JOB_IS_DRAFT                  = 5008,
   JOB_NOT_EXIST                 = 5009,
   JOB_USER_MISMATCH             = 5010,
+  JOB_INVALID_POINT_AMOUNT      = 5011,
+  JOB_NO_ITEMS_FOR_ORDER        = 5012,
+  JOB_MERCHANT_MISMATCH         = 5013,
+  JOB_MERCHANT_CANT_LOCATE      = 5014,
 
   // Token related codes
   TOKEN_INVALID_ROLE = 6000,

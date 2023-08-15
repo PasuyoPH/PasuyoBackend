@@ -36,7 +36,11 @@ const Tables = {
   Notifications: 'notifications',
   Promos: 'promos',
   ExpoTokens: 'expo_tokens',
-  LoadRequest: 'load_request'
+  LoadRequest: 'load_request',
+  Merchant: 'merchants',
+  MerchantItems: 'merchant_items',
+  Orders: 'orders',
+  Likes: 'likes'
 }
 
 export default Tables

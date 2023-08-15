@@ -25,8 +25,12 @@ class JobSchema extends Schema {
 
     this.table.double('riderFee')
 
+    // Delivery
     this.table.text('item')
     this.table.double('weight')
+
+    // Order
+    this.table.specificType('orders', 'text ARRAY')
 
     this.table.text('proof')
     this.table.tinyint('cashPickup').defaultTo(PickupPaymentTypes.DROPOFF).checkBetween(

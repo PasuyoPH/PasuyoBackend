@@ -18,6 +18,8 @@ import NotificationUtils from './Notification'
 import WsUtils from './Websocket'
 import { Rider } from '../types/database/Rider'
 import AdminUtils from './Admin'
+import MerchantUtils from './Merchant'
+import OrderUtils from './Orders'
 
 class Utils {
   public admins: AdminUtils
@@ -30,6 +32,8 @@ class Utils {
   public jobs: JobUtils
   public notifications: NotificationUtils
   public ws: WsUtils
+  public merchant: MerchantUtils
+  public orders: OrderUtils
 
   constructor(public server: HttpServer) {
     this.admins = new AdminUtils(this.server)
@@ -42,6 +46,8 @@ class Utils {
     this.jobs = new JobUtils(this.server)
     this.notifications = new NotificationUtils(this.server)
     this.ws = new WsUtils(this.server)
+    this.merchant = new MerchantUtils(this.server)
+    this.orders = new OrderUtils(this.server)
   }
 
   public async fetchRiders(ids: string[]) {

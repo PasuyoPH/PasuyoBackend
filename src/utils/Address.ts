@@ -3,7 +3,7 @@ import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Address from '../types/database/Address'
-import { AddressUsed } from '../types/database/AddressUsed'
+import { AddressUsed, AddressUsedType } from '../types/database/AddressUsed'
 import NewAddressData from '../types/http/NewAddressData'
 
 class AddressUtils {
@@ -145,6 +145,35 @@ class AddressUtils {
       .insert(address)
 
     return address
+  }
+
+  public async markAsUsed(job: string, addresses: Address[]) {
+    return await this.server.db.table<AddressUsed>(Tables.AddressUsed)
+    .insert(
+      addresses.map(
+        (point, idx) => {
+          return {
+            addressUid: point.uid,
+            latitude: point.latitude,
+            longitude: point.longitude,
+            jobUid: job,
+            type: idx === 0 ?
+              AddressUsedType.START : (
+                idx === addresses.length - 1 ?
+                  AddressUsedType.END :
+                  AddressUsedType.MID
+              ),
+            index: idx !== 0 && idx !== addresses.length - 1 ?
+              idx - 1 :
+              -1,
+            createdAt: Date.now(),
+            
+            text: point.text,
+            landmark: point.landmark
+          }
+        }
+      )
+    )
   }
 }
 

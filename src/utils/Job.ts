@@ -2,7 +2,7 @@ import { start } from 'repl'
 import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
-import { Services } from '../types/Services'
+import { PickupPaymentTypes, Services } from '../types/Services'
 import Tables from '../types/Tables'
 import Address from '../types/database/Address'
 import { AddressUsed, AddressUsedType } from '../types/database/AddressUsed'
@@ -11,6 +11,8 @@ import { Rider, RiderStates } from '../types/database/Rider'
 import NewJobData from '../types/http/NewJobData'
 import User from '../types/database/User'
 import WebSocket from 'ws'
+import MerchantItem from '../types/database/MerchantItem'
+import Merchant from '../types/database/Merchant'
 
 class JobUtils {
   constructor(public server: HttpServer) {}
@@ -495,13 +497,176 @@ class JobUtils {
 
     return transaction
   }
+
+  public async create(data: NewJobData, user: string) {
+    const service = Services.find(
+      (s) => s.type === data.type
+    )
+
+    if (!service)
+      throw new HttpError(
+        HttpErrorCodes.JOB_INVALID_TYPE,
+        'Invalid job type was provided. Please make sure to place the correct type.'
+      )
+
+    const uid = await this.server.utils.crypto.genUID(),
+      job = {
+        uid,
+        user,
+        type: data.type,
+        status: JobStatus.PROCESSED,
+        createdAt: null,
+        draft: true,
+        cashPickup: null
+      }
+
+    switch (data.type) {
+      case JobTypes.DELIVERY: {
+        if (
+          !Array.isArray(data.points) ||
+          data.points.length < 2
+        )
+          throw new HttpError(
+            HttpErrorCodes.JOB_INVALID_POINTS,
+            'Invalid location points where provided. Please make sure there are atleast 2.'
+          )
+
+        if (
+          typeof data.item !== 'string' ||
+          isNaN(data.weight as any)
+        )
+          throw new HttpError(
+            HttpErrorCodes.JOB_INVALID_DELIVERY,
+            'Invalid delivery data was provided. Please try again.'
+          )
+
+        job.cashPickup = data.cashPickup
+        
+        const points = await this.server.utils.addresses.get(data.points)
+        if (points.length < 2)
+          throw new HttpError(
+            HttpErrorCodes.JOB_INVALID_POINTS,
+            'Invalid location points where provided.'
+          )
+
+        const distance = await this.server.utils.math.calculateDistance(points),
+          jobInsertData: Job = {
+            ...job,
+            ...distance,
+            createdAt: Date.now(),
+            item: data.item,
+            weight: data.weight
+          }
+
+        // save to database
+        await this.server.db.table(Tables.Jobs)
+          .insert(jobInsertData)
+
+        // mark addresses as used
+        await this.server.utils.addresses.markAsUsed(job.uid, points)
+        return jobInsertData // return the inserted job data
+      } 
+
+      case JobTypes.ORDER: { // this is expected only 1 point to be given
+        if (
+          !Array.isArray(data.points) ||
+          data.points.length !== 1
+        )
+          throw new HttpError(
+            HttpErrorCodes.JOB_INVALID_POINT_AMOUNT,
+            'Please make sure that there is only one address provided for this type of job.'
+          )
+
+        // Filter and combine all orders, prepare to insert to orders table
+        const orders: { [key: string]: number } = {} // key is item id, value is quantity
+
+        for (let i = 0; i < data.orders.length; i++) {
+          const prev = data.orders[i - 1],
+            curr = data.orders[i],
+            next = data.orders[i + 1]
+
+          if (
+            (prev && prev.merchant !== curr.merchant) || // check if previous item in list does not match current merchant
+            (next && next.merchant !== curr.merchant) // check if next item in list does not match current merchant
+          )
+            throw new HttpError(
+              HttpErrorCodes.JOB_MERCHANT_MISMATCH,
+              'You can only buy products from 1 merchant at a time.'
+            )
+
+          if (curr.quantity < 1) continue // ignore less than 1 quantities
+          else orders[curr.item] = (orders[curr.item] ?? 0) + curr.quantity // add quantity
+        }
+
+        // Do database stuff
+        const job = await this.server.db.transaction( // use a transaction to keep it safe and clean in case of fuck-ups
+          async (trx) => {
+            // Fetch merchant items from database to check
+            const items = await trx<MerchantItem>(Tables.MerchantItems)
+              .select('*')
+              .whereIn('uid', Object.keys(orders))
+              
+            if (items.length < 1)
+              throw new HttpError(
+                HttpErrorCodes.JOB_NO_ITEMS_FOR_ORDER,
+                'Please make sure to order atleast one item.'
+              )
+
+            const merchantId = data.orders[0].merchant,
+              // get addresses
+              merchantAddress = await trx<Address>(Tables.Address)
+                .select('*')
+                .where(
+                  {
+                    user: merchantId,
+                    merchant: true
+                  }
+                )
+                .first()
+                
+            if (!merchantAddress)
+              throw new HttpError(
+                HttpErrorCodes.JOB_MERCHANT_CANT_LOCATE,
+                'We sadly can\'t locate where the merchant is. Try again later.'
+              )
+
+            // we now have the first address, we need to get the final address.
+            // client should provide us the id of the address to use
+            const [endAddress] = await this.server.utils.addresses.get(data.points),
+              points = [merchantAddress, endAddress],
+              distance = await this.server.utils.math.calculateDistance(points),
+              jobInsertData: Job = {
+                ...job,
+                ...distance,
+                createdAt: Date.now(),
+                cashPickup: PickupPaymentTypes.DROPOFF, // pickup cash at end
+              }
+
+            // save job draft
+            await this.server.db.table(Tables.Jobs)
+              .insert(jobInsertData)
+
+            // insert orders to another table
+            await this.server.utils.orders.addItem(job.uid, data.orders)
+
+            // mark addresses as used
+            await this.server.utils.addresses.markAsUsed(job.uid, points)
+            return jobInsertData // return the inserted job data to the transaction
+          }
+        )
+
+        // return job data
+        return job
+      }
+    }
+  }
   
   /**
    * Creates a new job preview.
    * @param data The data of the new job.
    * @param user The user who made the job
    */
-  public async create(data: NewJobData, user: string) {
+  public async createOld(data: NewJobData, user: string) {
     const service = Services.find(
       (s) => s.type === data.type
     )

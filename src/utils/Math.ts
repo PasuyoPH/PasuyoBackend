@@ -7,10 +7,27 @@ import { Geo } from '../types/database/Address'
 import { Rider, RiderRanks } from '../types/database/Rider'
 import axios from 'axios'
 
-const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json'
+const API_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json',
+  LIKE_MULTIPLIER = 1.2,
+  SALES_MULTIPLIER = .8
 
 class MathUtils {
   constructor(public server: HttpServer) {}
+
+  public calculateScore(likes: number, sales: number) {
+    const totalLikesScore = likes * LIKE_MULTIPLIER,
+      totalSalesScore = sales * SALES_MULTIPLIER
+
+    return totalLikesScore + totalSalesScore
+  }
+
+  public calculateLikeToScore(likes: number) {
+    return likes * LIKE_MULTIPLIER
+  }
+
+  public calculateSalesToScore(sales: number) {
+    return sales * SALES_MULTIPLIER
+  }
 
   public async calculateXp(distance: number) {
     return this.server.config.xp.unitPerDistance *

@@ -11,6 +11,8 @@ class AuthUser extends Path {
       pin = req.body<string>('pin'),
       rider = req.body<boolean>('rider')
 
+    console.log(req.req.body)
+
     return {
       value: await this.server.utils.users.toToken(phone, pin, rider),
       code: 200
