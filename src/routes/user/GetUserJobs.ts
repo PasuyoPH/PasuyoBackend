@@ -9,7 +9,7 @@ class GetUserJobs extends Path {
   
   public async onRequest() {
     return {
-      value: await this.server.utils.jobs.getUserJobs(this.user.uid),
+      value: await this.server.utils.jobs2.getUserJobs(this.user.uid),
       code: 200
     }
   }

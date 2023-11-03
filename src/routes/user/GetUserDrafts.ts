@@ -9,7 +9,7 @@ class GetUserDrafts extends Path {
 
   public async onRequest() {
     return {
-      value: await this.server.utils.jobs.getDrafts(this.user.uid),
+      value: await this.server.utils.jobs2.getUserJobs(this.user.uid, true),
       code: 200
     }
   }

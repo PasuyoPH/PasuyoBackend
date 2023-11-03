@@ -4,6 +4,7 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Address from '../types/database/Address'
 import { AddressUsed, AddressUsedType } from '../types/database/AddressUsed'
+import User from '../types/database/User'
 import NewAddressData from '../types/http/NewAddressData'
 
 class AddressUtils {
@@ -94,10 +95,10 @@ class AddressUtils {
    * @param data The data of the address.
    * @param user The user that will make the address.
    */
-  public async create(data: NewAddressData, user: string) {
+  public async create(data: NewAddressData, user: User) {
     if (
-      !data.template ||
-      data.template.length < 3
+      !data?.template ||
+      data?.template.length < 3
     )
       throw new HttpError(
         HttpErrorCodes.ADDRESS_INVALID_NOTE,
@@ -119,24 +120,29 @@ class AddressUtils {
         'Invalid text address provided.'
       )
 
-    if (
-      typeof data.contactName !== 'string' ||
-      data.contactName.length < 2
-    )
-      throw new HttpError(
-        HttpErrorCodes.ADDRESS_INVALID_CONTACT_NAME,
-        'Contact name is too short, please try again.'
+    if (!data.useUserData) {
+      if (
+        typeof data.contactName !== 'string' ||
+        data.contactName.length < 2
       )
+        throw new HttpError(
+          HttpErrorCodes.ADDRESS_INVALID_CONTACT_NAME,
+          'Contact name is too short, please try again.'
+        )
 
-    if (isNaN(data.contactPhone as any))
-      throw new HttpError(
-        HttpErrorCodes.ADDRESS_IVNALID_CONTACT_PHONE,
-        'Invalid contact phone number provided, please try again.'
-      )
+      if (isNaN(data.contactPhone as any))
+        throw new HttpError(
+          HttpErrorCodes.ADDRESS_IVNALID_CONTACT_PHONE,
+          'Invalid contact phone number provided, please try again.'
+        )
+    } else {
+      data.contactName = user.fullName
+      data.contactPhone = user.phone
+    }
 
     const address: Address = {
       ...data,
-      user,
+      user: user.uid,
       uid: await this.server.utils.crypto.genUID(),
       createdAt: Date.now()
     }

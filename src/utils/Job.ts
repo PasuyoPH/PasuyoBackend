@@ -13,6 +13,9 @@ import User from '../types/database/User'
 import WebSocket from 'ws'
 import MerchantItem from '../types/database/MerchantItem'
 import Merchant from '../types/database/Merchant'
+import { Knex } from 'knex'
+import Order, { OrderStatus } from '../types/database/Order'
+import { DeliveryStatus } from '../types/database/Delivery'
 
 class JobUtils {
   constructor(public server: HttpServer) {}
@@ -91,6 +94,79 @@ class JobUtils {
       .where('status', '<', JobStatus.DONE)
   }
 
+  private async getJobsByDate(
+    options: {
+      table: string,
+      rider: Rider,
+      firstStatus: number,
+      lastStatus: number
+    }
+  ) {
+    return await this.server.db.table(options.table)
+      .select('*')
+      .where(
+        (firstBuilder) => firstBuilder.where(
+            {
+              status: options.firstStatus,
+              draft: false,
+              rider: null
+            }
+          )
+          .orWhere(
+            (secondBuilder) => secondBuilder.where({ rider: null })
+              .whereNotIn(
+                'status',
+                [
+                  options.firstStatus,
+                  options.lastStatus
+                ]
+              )
+          )
+      )
+      .orderBy('createdAt', 'desc')
+  }
+
+  private async getNearestJobs(
+    options: {
+      table: string,
+      latitude: number,
+      longitude: number,
+      firstStatus: number
+    }
+  ) {
+    return this.server.db.table(options.table)
+      .select(
+        `${options.table}.*`,
+        `${Tables.AddressUsed}.longitude`,
+        `${Tables.AddressUsed}.latitude`,
+        `${Tables.AddressUsed}.jobUid`
+      )
+      .join(
+        Tables.AddressUsed,
+        `${options.table}.uid`,
+        '=',
+        `${Tables.AddressUsed}.jobUid`
+      )
+      .where(
+        {
+          status: options.firstStatus,
+          draft: false,
+          rider: null
+        }
+      )
+      .orderByRaw(
+        `ST_DistanceSphere(
+          ST_MakePoint(${Tables.AddressUsed}.longitude, ${Tables.AddressUsed}.latitude),
+          ST_MakePoint(:longitude, :latitude)
+        ) ASC`,
+        {
+          latitude: options.latitude,
+          longitude: options.longitude
+        }
+      )
+      .limit(5)
+  }
+
   /**
    * Fetches available and nearest jobs for a rider
    * @param latitude The latitude of the rider
@@ -102,76 +178,73 @@ class JobUtils {
     longitude: number,
     rider: Rider
   ) {
-    const nearestJobsQuery = this.server.db.table<Job>(Tables.Jobs)
-      .select(
-        `${Tables.Jobs}.*`,
-        `${Tables.AddressUsed}.longitude`,
-        `${Tables.AddressUsed}.latitude`,
-        `${Tables.AddressUsed}.jobUid`
-      )
-      .join(
-        Tables.AddressUsed,
-        `${Tables.Jobs}.uid`,
-        '=',
-        `${Tables.AddressUsed}.jobUid`
-      )
-      .where(
+    const nearestOrdersQuery = this.getNearestJobs(
         {
-          status: JobStatus.PROCESSED,
-          draft: false
+          table: Tables.Orders,
+          latitude,
+          longitude,
+          firstStatus: OrderStatus.ORDER_PROCESSED
+        }
+      ),
+      nearestDeliveriesQuery = this.getNearestJobs(
+        {
+          table: Tables.Deliveries,
+          latitude,
+          longitude,
+          firstStatus: DeliveryStatus.DELIVERY_PROCESSED
         }
       )
-      .orderByRaw(
-        `ST_DistanceSphere(
-          ST_MakePoint(${Tables.AddressUsed}.longitude, ${Tables.AddressUsed}.latitude),
-          ST_MakePoint(:longitude, :latitude)
-        ) ASC`,
-        { latitude, longitude }
-      )
-      .limit(5),
-      jobsByDateQuery = this.server.db.table<Job>(Tables.Jobs)
-        .select('*')
-        .where(
-          (firstBuilder) => firstBuilder.where(
-              {
-                status: JobStatus.PROCESSED,
-                draft: false
-              }
-            )
-            .orWhere(
-              (secondBuilder) => secondBuilder.where({ rider: rider.uid })
-                .whereNotIn(
-                  'status',
-                  [
-                    JobStatus.PROCESSED,
-                    JobStatus.DONE
-                  ]
-                )
-            )
-        )
-        .orderBy('createdAt', 'desc')
 
-    const [available, nearest] = await Promise.all(
-      [jobsByDateQuery, nearestJobsQuery]
+    // by date queries
+    const ordersByDateQuery = this.getJobsByDate(
+        {
+          table: Tables.Orders,
+          rider,
+          firstStatus: OrderStatus.ORDER_PROCESSED,
+          lastStatus: OrderStatus.GOAL
+        }
+      ),
+      deliveriesByDateQuery = this.getJobsByDate(
+        {
+          table: Tables.Deliveries,
+          rider,
+          firstStatus: DeliveryStatus.DELIVERY_PROCESSED,
+          lastStatus: DeliveryStatus.GOAL
+        }
+      )
+
+    const [
+      [availableOrders, availableDeliveries],
+      [nearestOrders, nearestDeliveries]
+    ] = await Promise.all(
+      [
+        Promise.all(
+          [ordersByDateQuery, deliveriesByDateQuery]
+        ),
+
+        Promise.all(
+          [nearestOrdersQuery, nearestDeliveriesQuery]
+        )
+      ]
     )
 
     return {
-      available,
+      available: [...availableOrders, ...availableDeliveries],
       nearest: Array.from(
-        nearest.reduce(
-          (map, obj: Job) => {
-            // delete unused properties
-            delete obj['latitude']
-            delete obj['longitude']
-            delete obj['jobUid']
+        [...nearestOrders, ...nearestDeliveries]
+          .reduce(
+            (map, obj: Job) => {
+              // delete unused properties
+              delete obj['latitude']
+              delete obj['longitude']
+              delete obj['jobUid']
 
-            return map.set(obj.uid, obj)
-          },
-          new Map()
-        ).values()
+              return map.set(obj.uid, obj)
+            },
+            new Map()
+          ).values()
       ).slice(0, 5)
     }
-
   }
 
   /**
@@ -647,7 +720,7 @@ class JobUtils {
               .insert(jobInsertData)
 
             // insert orders to another table
-            await this.server.utils.orders.addItem(job.uid, data.orders)
+            //await this.server.utils.orders.addItem(job.uid, data.orders)
 
             // mark addresses as used
             await this.server.utils.addresses.markAsUsed(job.uid, points)

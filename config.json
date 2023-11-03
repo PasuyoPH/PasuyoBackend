@@ -1,12 +1,12 @@
 {
   "http": {
     "port": 8080,
-    "cleanedJsonResponses": false,
+    "cleanedJsonResponses": true,
 
     "base": "/api"
   },
 
-  "debug": true,
+  "debug": false,
   "apiVersion": "2.1",
 
   "db": {
@@ -47,7 +47,7 @@
   },
 
   "google": {
-    "apikey": "AIzaSyCzEhb7M7ILYTsHj7rU5yO7pxqODzSUCQs"
+    "apikey": "AIzaSyAe1O4RsaElYL79mHnPSHRGL_lVCf9uP0M"
   },
 
   "s3": {
@@ -71,5 +71,27 @@
   "xp": {
     "unitPerDistance": 5,
     "scale": 0.65
-  }
+  },
+
+  "paypal": {
+    "client_id": "AZkYOvmHW1sxQxbEGZaosAsUudgDBQe9UKpwkJHQKunUf8fDm2oy2LcDUZz0OkO3E3oshUcXFtlwc7EX",
+    "secret": "EPt06JXVBBOe1KCFoU5b6pQ2anaeVnoUmavNpDUTPlirqF3slnJ-xp7BDlDkaROwUhM8TryqZyenYLa_"
+  },
+
+  "payment_methods": [
+    {
+      "name": "Cash on Delivery",
+      "image": "https://cdn-icons-png.flaticon.com/512/5278/5278592.png"
+    },
+    {
+      "name": "PayPal",
+      "image": "https://static.vecteezy.com/system/resources/previews/022/100/707/original/paypal-logo-transparent-free-png.png",
+      "disabled": true
+    },
+    {
+      "name": "GCash (Manual)",
+      "image": "https://play-lh.googleusercontent.com/QNP0Aj2hyumAmYiWVAsJtY2LLTQnzHxdW7-DpwFUFNkPJjgRxi-BXg7A4yI6tgYKMeU",
+      "requireImage": true
+    }
+  ]
 }

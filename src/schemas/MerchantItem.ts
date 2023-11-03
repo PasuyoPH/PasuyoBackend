@@ -15,6 +15,7 @@ class MerchantItemSchema extends Schema {
     this.table.integer('type').defaultTo(ItemTypes.OTHER)
     this.table.text('banner')
     this.table.bigint('addedAt').notNullable()
+    this.table.specificType('types', 'integer ARRAY').defaultTo('{}')
   }
 }
 

@@ -17,7 +17,6 @@ interface Address extends Geo {
   contactName: string
 
   createdAt: number
-
   merchant?: boolean // setting this to true, would mark this as a merchant address. meaning the user field would instead be the id of the merchant who owns this address
 }
 

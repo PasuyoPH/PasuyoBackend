@@ -10,10 +10,13 @@ class LikeMerchantItem extends Path {
   }
 
   public async onRequest(req: ClientRequest) {
-    const uid = req.params('uid')
+    const uid = req.params('uid'),
+      remove = req.body<boolean>('remove') ?? false
 
     return {
-      value: await this.server.utils.merchant.like(this.user.uid, uid),
+      value: remove ?
+        await this.server.utils.merchant.unlike(this.user.uid, uid) : 
+        await this.server.utils.merchant.like(this.user.uid, uid),
       code: 200
     }
   }

@@ -2,6 +2,7 @@ import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
+import { AddressUsed } from '../types/database/AddressUsed'
 import ExpoToken from '../types/database/ExpoToken'
 import Likes from '../types/database/Likes'
 import Merchant from '../types/database/Merchant'
@@ -12,6 +13,15 @@ import AuthCreateData from '../types/http/AuthCreateData'
 
 class UsersUtils {
   constructor(public server: HttpServer) {}
+
+  public async getUserJobAddresses(uid: string) {
+    const addresses = await this.server.db.table<AddressUsed>(Tables.AddressUsed)
+      .select('*')
+      .where({ jobUid: uid })
+
+    // let client filter this out
+    return addresses
+  }
 
   // get recommended merchants based on user
   public async getRecommendedMerchants(uid: string) {

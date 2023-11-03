@@ -12,9 +12,10 @@ class MerchantSchema extends Schema {
     this.table.text('name').notNullable()
     this.table.text('bio')
     this.table.integer('sales').defaultTo(0)
-    this.table.specificType('tags', 'text ARRAY').defaultTo([])
+    this.table.specificType('tags', 'text ARRAY').defaultTo('{}')
     this.table.tinyint('priceLevels').defaultTo(0)
     this.table.text('accent')
+    this.table.specificType('types', 'integer ARRAY').defaultTo('{}')
   }
 }
 

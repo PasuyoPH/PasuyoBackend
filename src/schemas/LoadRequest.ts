@@ -6,8 +6,9 @@ class LoadRequestSchema extends Schema {
 
   public async handle() {
     this.uid('uid').unique()
-    this.uid('rider')
-    this.table.text('url').notNullable()
+    this.uid('user')
+    this.table.text('receipt').notNullable()
+    this.table.double('amount').notNullable().defaultTo(0.00)
   }
 }
 

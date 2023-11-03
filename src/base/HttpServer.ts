@@ -1,22 +1,14 @@
 import restana from 'restana'
 import { IConfig } from '../types/Config'
-
 import Path from './Path'
 import Utils from '../utils'
-
 import moment from 'moment'
 import knex, { Knex } from 'knex'
-
 import WebSocket from 'ws'
-//import OpenEvent from '../ws/events/Open'
-
-//import MessageEvent from '../ws/events/Message'
-//import { GeoCacheData } from '../types/v2/Geo'
-
-//import CloseEvent from '../ws/events/Close'
 import Expo from 'expo-server-sdk'
 import { S3 } from '@aws-sdk/client-s3'
 import Storages from '../types/Storages'
+import EventEmitter from 'events'
 
 import JobSchema from '../schemas/Job'
 import AddressSchema from '../schemas/Address'
@@ -36,8 +28,12 @@ import MerchantSchema from '../schemas/Merchant'
 import OrderSchema from '../schemas/Order'
 import MerchantItemSchema from '../schemas/MerchantItem'
 import LikesSchema from '../schemas/Likes'
+import PaypalAuthToken from '../types/http/PaypalAuthToken'
+import Job2Schema from '../schemas/Job2'
+import TransactionSchema from '../schemas/Transaction'
+import DeliverySchema from '../schemas/Delivery'
 
-class HttpServer {
+class HttpServer extends EventEmitter {
   public restana = restana()
   public routes: Map<string, Path> = new Map()
   public PROCESS_CWD = process.cwd()
@@ -51,11 +47,16 @@ class HttpServer {
   //public geo: Map<string, GeoCacheData> = new Map()
   public expo = new Expo()
   public storages: Storages
+  public paypalAccessToken: string = null
 
   // new content
   public utils = new Utils(this)
 
+  private paypalAccessTokenTimeout: NodeJS.Timeout = null
+
   constructor(public config: IConfig) {
+    super()
+
     if (this.config.ws.enabled)
       this.setupWebsocket()
 
@@ -85,16 +86,44 @@ class HttpServer {
       load: new S3(
         this.generateS3Config('load')
       )
-    }    
-  
-    // for testing purposes
-    /*this.storages.evidences.putObject(
-      {
-        Bucket: 'sin1',
-        Body: Buffer.from('TESTING 123'),
-        Key: 'test.txt'
-      }
-    )*/
+    }
+
+    // payments
+    this.preparePaypal()
+  }
+
+  private async preparePaypal() {
+    try {
+      await this.log('[INFO]: Fetching Paypal Accesss Token')
+      this.on(
+        'paypal_access_token',
+        async (data: PaypalAuthToken) => {        
+          if (this.paypalAccessTokenTimeout)
+            clearTimeout(this.paypalAccessTokenTimeout)
+
+          await this.log('[INFO]: Received new Paypal Access Token:', data.access_token)
+
+          this.paypalAccessToken = data.access_token
+          this.paypalAccessTokenTimeout = setTimeout(
+            async () => {
+              this.paypalAccessToken = null
+              await this.utils.paypal.getAccessToken()
+            },
+            (data.expires_in * 1000) - 5000 // fetch 5 seconds advance
+          )
+        }
+      )
+
+      await this.utils.paypal.getAccessToken()
+    } catch(err) {
+      if (this.paypalAccessToken) return
+      
+      await this.log('[ERROR]: Paypal Access Token failed. Retrying in 2 seconds...')
+      setTimeout(
+        async () => await this.preparePaypal(),
+        2 * 1000
+      )
+    }
   }
 
   private generateS3Config(bucket: string) {
@@ -114,6 +143,7 @@ class HttpServer {
       AddressUsedSchema,
       AdminSchema,
       JobSchema,
+      Job2Schema,
       ReferralSchema,
       RiderSchema,
       UserSchema,
@@ -124,7 +154,9 @@ class HttpServer {
       MerchantSchema,
       OrderSchema,
       MerchantItemSchema,
-      LikesSchema
+      LikesSchema,
+      TransactionSchema,
+      DeliverySchema
     ]
 
     for (const Schema of tables) {

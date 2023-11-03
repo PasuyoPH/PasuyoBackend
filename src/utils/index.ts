@@ -20,6 +20,14 @@ import { Rider } from '../types/database/Rider'
 import AdminUtils from './Admin'
 import MerchantUtils from './Merchant'
 import OrderUtils from './Orders'
+import Job2Utils from './Job2'
+import PaypalUtils from './Paypal'
+import CashUtils from './Cash'
+import axios from 'axios'
+import { ReverseGeocodingResponse } from '../types/http/Geocode'
+import PaymentUtils from './Payment'
+import DeliveryUtils from './Delivery'
+import GCashUtils from './GCash'
 
 class Utils {
   public admins: AdminUtils
@@ -30,10 +38,16 @@ class Utils {
   public addresses: AddressUtils
   public math: MathUtils
   public jobs: JobUtils
+  public jobs2: Job2Utils
   public notifications: NotificationUtils
   public ws: WsUtils
   public merchant: MerchantUtils
   public orders: OrderUtils
+  public paypal: PaypalUtils
+  public cash: CashUtils
+  public payment: PaymentUtils
+  public deliveries: DeliveryUtils
+  public gcash: GCashUtils
 
   constructor(public server: HttpServer) {
     this.admins = new AdminUtils(this.server)
@@ -44,10 +58,41 @@ class Utils {
     this.addresses = new AddressUtils(this.server)
     this.math = new MathUtils(this.server)
     this.jobs = new JobUtils(this.server)
+    this.jobs2 = new Job2Utils(this.server)
     this.notifications = new NotificationUtils(this.server)
     this.ws = new WsUtils(this.server)
     this.merchant = new MerchantUtils(this.server)
     this.orders = new OrderUtils(this.server)
+    this.paypal = new PaypalUtils(this.server)
+    this.cash = new CashUtils(this.server)
+    this.payment = new PaymentUtils(this.server)
+    this.deliveries = new DeliveryUtils(this.server)
+    this.gcash = new GCashUtils(this.server)
+  }
+
+  public async reverseGeoCode(lat: number, long: number) {
+    // send geo reverse request
+    const res = await axios(
+      {
+        method: 'get',
+        url: `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=AIzaSyAe1O4RsaElYL79mHnPSHRGL_lVCf9uP0M`
+      }
+    ) as { data: ReverseGeocodingResponse }
+
+    if (res.data.status !== 'OK')
+      throw new HttpError(
+        HttpErrorCodes.GEOCODE_FAILED,
+        'Reverse geocode failed.'
+      )
+
+    const [address] = res.data.results
+    if (!address)
+      throw new HttpError(
+        HttpErrorCodes.GEOCODE_ADDRESS_NOT_FOUND,
+        'Address was not found.'
+      )
+
+    return address.formatted_address
   }
 
   public async fetchRiders(ids: string[]) {
@@ -83,7 +128,27 @@ class Utils {
       }
     )
 
-    return storageUrl + filePath
+    return storageUrl + '/' + filePath
+  }
+
+  public async uploadProfile(file: Buffer) {
+    if (!file)
+      throw new HttpError(
+        HttpErrorCodes.JOB_NO_IMAGE_FILE_PROVIDED,
+        'Please provide a proper image file.'
+      )
+
+    try {
+      const fileUrl = await this.uploadFile(
+      {
+        storage: 'profiles',
+        file
+      }
+    )
+
+    return fileUrl
+    }
+    catch(err){ console.log(err) }
   }
 
   public async getPromos() {

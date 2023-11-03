@@ -27,7 +27,6 @@ import UpdateUserProfile from './src/routes/user/UpdateUserProfile'
 import GetRiderHistory from './src/routes/rider/GetRiderHistory'
 import GetJob from './src/routes/job/GetJob'
 import GetJobAddresses from './src/routes/job/GetJobAddresses'
-import ViewJobs from './src/routes/job/ViewJobs'
 import GetUser from './src/routes/user/GetUser'
 import GetRider from './src/routes/rider/GetRider'
 import GetPromos from './src/routes/GetPromos'
@@ -53,7 +52,6 @@ import RiderRequestLoad from './src/routes/rider/RiderRequestLoad'
 import GetAdminToken from './src/routes/admin/GetAdminToken'
 import AddItemToMerchant from './src/routes/merchant/AddItem'
 import GetMerchantItems from './src/routes/merchant/GetItems'
-import GetOrders from './src/routes/orders/GetOrders'
 import GetMerchants from './src/routes/merchant/GetMerchants'
 import LikeMerchantItem from './src/routes/merchant/LikeMerchantItem'
 import GetRecommendedMerchants from './src/routes/user/GetRecommendedMerchants'
@@ -61,6 +59,32 @@ import GetNewItems from './src/routes/merchant/GetNewItems'
 import GetMerchantItem from './src/routes/merchant/GetMerchantItem'
 import GetMerchant from './src/routes/merchant/GetMerchant'
 import GetItems from './src/routes/merchant/GetItemsbyIds'
+import GetMerchantData from './src/routes/merchant/GetMerchantData'
+import CreateOrder from './src/routes/order/CreateOrder'
+import CreatePayment from './src/routes/payment/paypal/CreatePayment'
+import CompletePayment from './src/routes/payment/paypal/CompletePayment'
+import Geocode from './src/routes/Geocode'
+import GetFilters from './src/routes/Filters'
+import CreateCashPayment from './src/routes/payment/cash/CreateCashPayment'
+import GetPaymentMethods from './src/routes/GetPaymentMethods'
+import NewPayment from './src/routes/payment/NewPayment'
+import SearchItems from './src/routes/Search'
+import GetLikedItem from './src/routes/merchant/GetLikedItem'
+import GetUserLikes from './src/routes/user/GetUserLikes'
+import GetUserDeliveries from './src/routes/delivery/GetUserDeliveries'
+import CreateDelivery from './src/routes/delivery/CreateDelivery'
+import UploadProfile from './src/routes/UploadProfile'
+import GetMerchantAddresses from './src/routes/merchant/GetMerchantAddresses'
+import ViewJobs from './src/routes/job2/ViewJobs'
+import GetJobData from './src/routes/job2/GetJobData'
+import GetJobMap from './src/routes/job2/GetJobMap'
+import TakeJob from './src/routes/job2/TakeJob'
+import JobDone from './src/routes/job2/JobDone'
+import JobPickedUp from './src/routes/job2/JobPickedUp'
+import GetUserJobs2 from './src/routes/job2/GetUserJobs'
+import GetUserActiveDeliveries from './src/routes/user/GetUserActiveDeliveries'
+import DeleteDeliveryDraft from './src/routes/delivery/DeleteDeliveryDraft'
+import GetUserJobAddresses from './src/routes/user/GetUserJobAddresses'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -100,6 +124,9 @@ const main = async () => {
   await http.register(GetAddressUsed)
   await http.register(UpdateUserProfile)
   await http.register(GetRecommendedMerchants)
+  await http.register(GetUserLikes)
+  await http.register(GetUserActiveDeliveries)
+  await http.register(GetUserJobAddresses)
   
   // Jobs?
   await http.register(GetRiderJobs)
@@ -114,7 +141,6 @@ const main = async () => {
   await http.register(GetJobAuthor)
   await http.register(GetJobRider)
   await http.register(GetJob)
-  await http.register(ViewJobs)
 
   // Distance
   await http.register(CalculateUserDistance)
@@ -146,13 +172,50 @@ const main = async () => {
   await http.register(GetMerchantItems)
   await http.register(GetMerchants)
   await http.register(LikeMerchantItem)
+  await http.register(GetLikedItem)
   await http.register(GetNewItems)
   await http.register(GetMerchantItem)
   await http.register(GetMerchant)
   await http.register(GetItems)
+  await http.register(GetMerchantData)
+  await http.register(SearchItems)
+  await http.register(GetMerchantAddresses)
 
-  // orders
-  await http.register(GetOrders)
+  // PaOrder
+  await http.register(CreateOrder)
+
+  // Payment
+  await http.register(NewPayment)
+
+  // Paypal
+  await http.register(CreatePayment)
+  await http.register(CompletePayment)
+
+  // Cash
+  await http.register(CreateCashPayment)
+
+  // Geocode
+  await http.register(Geocode)
+
+  // filters
+  await http.register(GetFilters)
+  await http.register(GetPaymentMethods)
+
+  // deliveries
+  await http.register(GetUserDeliveries)
+  await http.register(CreateDelivery)
+  await http.register(DeleteDeliveryDraft)
+
+  // profile
+  await http.register(UploadProfile)
+
+  // job 2
+  await http.register(ViewJobs)
+  await http.register(GetJobData)
+  await http.register(GetJobMap)
+  await http.register(TakeJob)
+  await http.register(JobDone)
+  await http.register(JobPickedUp)
 
   try {
     await http.ready()

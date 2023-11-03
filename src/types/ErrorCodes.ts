@@ -79,6 +79,36 @@ enum HttpErrorCodes {
 
   // user-specifc
   USER_USE_SELF_ID_ONLY = 12000,
+
+  // orders
+  ORDER_NOT_FOUND = 13000,
+  
+  // paypal
+  PAYPAL_NO_ACCESS_TOKEN        = 14000,
+  PAYPAL_FAILED_TO_GET_APPROVED = 14001,
+  PAYPAL_NO_TRANSACTION_EXISTS  = 14002,
+  PAYPAL_ALREADY_PAID           = 14003,
+  PAYPAL_PAYMENT_FAILED         = 14004,
+  PAYPAL_NO_JOB_DATA_FOUND      = 14006,
+
+  GEOCODE_FAILED            = 15000,
+  GEOCODE_ADDRESS_NOT_FOUND = 15001,
+
+  // payment
+  PAYMENT_NO_JOB_DATA_FOUND      = 16000, // use this instead of paypal_no_job_data_found,
+  PAYMENT_INVALID_JOB_TYPE       = 16001,
+  PAYMENT_INVALID_PAYMENT_METHOD = 16002,
+  PAYMENT_DISABLED               = 16003,
+  PAYMENT_INVALID_RECEIPT_GCASH  = 16004,
+
+  // likes
+  LIKE_ITEM_NOT_EXIST = 17000,
+
+  // New Job codes
+  JOB2_RIDER_NO_JOB = 18000,
+
+  // load request codes
+  LOAD_TOO_LOW = 19000,
 }
 
 export default HttpErrorCodes

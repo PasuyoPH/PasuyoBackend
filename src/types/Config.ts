@@ -58,6 +58,18 @@ interface XPConfig {
   scale: number
 }
 
+interface PaypalConfig {
+  client_id: string
+  secret: string
+}
+
+interface PaymentMethodConfig {
+  name: string
+  image: string
+  disabled?: boolean
+  requireImage?: boolean
+}
+
 interface IConfig {
   http: IHttpConfig
   debug: boolean
@@ -72,6 +84,8 @@ interface IConfig {
   google: GoogleConfig
   s3: S3Config
   xp: XPConfig
+  paypal: PaypalConfig
+  payment_methods: PaymentMethodConfig[]
 }
 
 export {

@@ -14,7 +14,7 @@ class NewUserAddress extends Path {
     const data = req.body<NewAddressData>('address')
     
     return {
-      value: await this.server.utils.addresses.create(data, this.user.uid),
+      value: await this.server.utils.addresses.create(data, this.user),
       code: 200
     }
   }

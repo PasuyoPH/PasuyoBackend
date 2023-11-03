@@ -27,11 +27,13 @@
 // New data:
 const Tables = {
   Admins: 'admins',
+  Deliveries: 'deliveries',
   Users: 'users',
   Riders: 'riders',
   Address: 'addresses',
   AddressUsed: 'address_used',
   Jobs: 'jobs',
+  Jobs2: 'jobs2',
   Referral: 'referral_codes',
   Notifications: 'notifications',
   Promos: 'promos',
@@ -40,7 +42,8 @@ const Tables = {
   Merchant: 'merchants',
   MerchantItems: 'merchant_items',
   Orders: 'orders',
-  Likes: 'likes'
+  Likes: 'likes',
+  Transactions: 'transactions'
 }
 
 export default Tables

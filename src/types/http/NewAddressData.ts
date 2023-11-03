@@ -6,6 +6,7 @@ interface NewAddressData {
   landmark?: string
   contactPhone: string
   contactName: string
+  useUserData?: boolean
 }
 
 export default NewAddressData

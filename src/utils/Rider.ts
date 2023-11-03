@@ -1,6 +1,9 @@
+import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
+import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Job, { JobStatus } from '../types/database/Job'
+import Job2 from '../types/database/Job2'
 import { Rider } from '../types/database/Rider'
 
 class RiderUtils {
@@ -94,14 +97,23 @@ class RiderUtils {
    * @param uid The id of the rider
    */
   public async getCurrentJob(uid: string) {
-    return await this.server.db.table<Job>(Tables.Jobs)
+    const job = await this.server.db.table<Job2>(Tables.Jobs2)
       .select('*')
-      .where({ rider: uid })
-      .whereNotIn(
-        'status',
-        [JobStatus.CANCELLED, JobStatus.DONE]
+      .where(
+        {
+          rider: uid,
+          finished: false
+        }
       )
       .first()
+      
+    if (!job)
+      throw new HttpError(
+        HttpErrorCodes.JOB2_RIDER_NO_JOB,
+        'Rider does not have a job.'
+      )
+
+    return await this.server.utils.jobs2.getData(job.dataUid, job.type)
   }
 }
 

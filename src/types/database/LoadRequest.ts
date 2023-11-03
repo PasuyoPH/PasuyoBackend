@@ -1,7 +1,8 @@
 interface LoadRequest {
   uid: string
-  rider: string
-  url: string
+  user: string
+  receipt: string
+  amount: number
 }
 
 export default LoadRequest
