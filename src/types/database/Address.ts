@@ -1,6 +1,6 @@
 interface Geo {
-  latitude: number
-  longitude: number
+  latitude?: number
+  longitude?: number
 }
 
 interface Address extends Geo {

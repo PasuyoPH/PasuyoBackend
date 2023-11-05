@@ -2,16 +2,50 @@ import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
+import { AddressUsed } from '../types/database/AddressUsed'
 import Admin from '../types/database/Admin'
+import Delivery from '../types/database/Delivery'
+import { JobTypes } from '../types/database/Job'
 import LoadRequest from '../types/database/LoadRequest'
 import Merchant from '../types/database/Merchant'
 import { Rider } from '../types/database/Rider'
-import Transaction from '../types/database/Transaction'
+import Transaction, { TransactionStatus } from '../types/database/Transaction'
 import User from '../types/database/User'
 import { ProtocolSendTypes } from '../types/ws/Protocol'
 
 class AdminUtils {
   constructor(public server: HttpServer) {}
+  
+  public async approveGCash(uid: string) {
+    // mark transaction as paid
+    await this.server.db.table<Transaction>(Tables.Transactions)
+      .update('status', TransactionStatus.USER_PAID)
+      .where('uid', uid)
+
+    const address = await this.server.db.table<AddressUsed>(Tables.AddressUsed)
+      .select('latitude', 'longitude')
+      .where('jobUid', uid)
+      .first()
+
+    if (!address) return
+    
+    // notify riders
+    if (this.server.config.ws.enabled)
+      await this.server.ws.send(
+        JSON.stringify(
+          {
+            c: 2,
+            d: {
+              uid,
+              geo: {
+                latitude: address.latitude,
+                longitude: address.longitude
+              }
+            }
+          }
+        )
+      )
+  }
 
   public async getStats() {
     const { count: transactions, sum: sales } = await this.server.db.table<Transaction>(Tables.Transactions)

@@ -25,19 +25,43 @@ interface UpdateMerchantData {
   logo: string
   types: ItemTypes[]
   accent: string
+  open: boolean
 }
 
 class MerchantUtils {
   constructor(public server: HttpServer) {}
 
+  public async getStats(merchant: Merchant) {
+    const { count: orders, sum: sales  } = await this.server.db.table<Order>(Tables.Orders)
+        .where('merchant', merchant.uid)
+        .count()
+        .sum('total')
+        .first(),
+      { count: likes } = await this.server.db.table<Likes>(Tables.Likes)
+        .where('merchant', merchant.uid)
+        .count()
+        .first()
+
+    return {
+      orders: Number(orders),
+      likes: Number(likes),
+      sales: Number(sales)
+    }
+  }
+
   public async getOrders(merchant: Merchant) {
     return await this.server.db
-      .select(`${Tables.Orders}.*`)
+      .select(
+        `${Tables.Orders}.*`,
+        `${Tables.Jobs2}.finished`,
+        `${Tables.Jobs2}.pickedUp`
+      )
       .from(Tables.Orders)
       /*.from(Tables.Orders)
       .innerJoin(Tables.Jobs2, `${Tables.Orders}.uid`, `${Tables.Jobs2}.dataUid`)
       .where(`${Tables.Jobs2}.finished`, false)
       .where(`${Tables.Jobs2}.pickedUp`, false)*/
+      .join(Tables.Jobs2, `${Tables.Orders}.uid`, `${Tables.Jobs2}.dataUid`)
       .where(`${Tables.Orders}.merchant`, merchant.uid)
   }
 
@@ -309,9 +333,10 @@ class MerchantUtils {
       .limit(limit)
   }
 
-  public async getMerchants() {
+  public async  getMerchants() {
     return await this.server.db.table<Merchant>(Tables.Merchant)
       .select('*')
+      .where('open', true)
   }
 
   public async getMerchantsById(ids: string[]) {

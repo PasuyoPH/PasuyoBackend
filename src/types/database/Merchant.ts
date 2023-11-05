@@ -12,7 +12,8 @@ interface Merchant extends Geo { // this would include lat & long due to it havi
   tags?: string[]
   priceLevels?: number
   accent?: string
-  types: ItemTypes[] // for filters
+  types?: ItemTypes[] // for filters
+  open?: boolean
 }
 
 export default Merchant

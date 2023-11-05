@@ -44,7 +44,7 @@ class GCashUtils {
       )
 
     // insert to load request
-    await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+    {/*await this.server.db.table<LoadRequest>(Tables.LoadRequest)
       .insert(
         {
           uid: generatedTransactionId,
@@ -52,7 +52,7 @@ class GCashUtils {
           user,
           receipt
         }
-      )
+      )*/}
 
     return {
       id: generatedTransactionId,

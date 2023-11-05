@@ -98,6 +98,9 @@ import MerchantDeleteAddress from './src/routes/merchant/MerchantDeleteAddress'
 import MerchantUpdateSelf from './src/routes/merchant/MerchantupdateSelf'
 import MerchantGetOrders from './src/routes/merchant/MerchantGetOrders'
 import GetRiderStats from './src/routes/rider/GetRiderStats'
+import MerchantGetStats from './src/routes/merchant/MerchantGetStats'
+import AdminApproveGCash from './src/routes/admin/AdminApproveGCash'
+import AdminNewMerchant from './src/routes/admin/AdminNewMerchant'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -180,6 +183,7 @@ const main = async () => {
   await http.register(GetAdminSelf)
   await http.register(AdminApproveLoad)
   await http.register(GetAdminToken)
+  await http.register(AdminNewMerchant)
 
   // merchant
   await http.register(GetMerchantItems)
@@ -236,6 +240,7 @@ const main = async () => {
   await http.register(AdminLoadAction)
   await http.register(AdminGetTransactions)
   await http.register(AdminGetStats)
+  await http.register(AdminApproveGCash)
 
   // merchant self
   await http.register(MerchantGetToken)
@@ -248,6 +253,7 @@ const main = async () => {
   await http.register(MerchantDeleteAddress)
   await http.register(MerchantUpdateSelf)
   await http.register(MerchantGetOrders)
+  await http.register(MerchantGetStats)
 
   try {
     await http.ready()

@@ -16,12 +16,13 @@ class MerchantUpdateSelf extends Path {
       banner = req.body<string>('banner') ?? undefined,
       logo = req.body<string>('logo') ?? undefined,
       types = req.body<ItemTypes[]>('types') ?? undefined,
-      accent = req.body<string>('accent') ?? undefined
+      accent = req.body<string>('accent') ?? undefined,
+      open = req.body<boolean>('open') ?? false
 
     return {
       value: await this.server.utils.merchant.updateMerchant(
         this.merchant,
-        { name, bio, banner, logo, types, accent }
+        { name, bio, banner, logo, types, accent, open }
       ),
       code: 200
     }
