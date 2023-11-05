@@ -33,6 +33,9 @@ interface Order {
   draft?: boolean
 
   type?: JobTypes
+  
+  // fees
+  cf?: number
 }
 
 export default Order

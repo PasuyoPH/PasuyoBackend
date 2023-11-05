@@ -29,6 +29,7 @@ class OrderSchema extends Schema {
     this.table.boolean('draft').defaultTo(true)
 
     this.table.tinyint('type').defaultTo(JobTypes.ORDER)
+    this.table.double('pf').defaultTo(0.00)
   }
 }
 

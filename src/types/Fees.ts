@@ -1,7 +1,7 @@
 const BASE_DELIVERY_FEE = 25,
-  DEFAULT_INCOME_RATE = .25,
+  DEFAULT_INCOME_RATE = .40,
   IncomeRates = [
-    DEFAULT_INCOME_RATE,
+    .40,
     .24,
     .23,
     .22,

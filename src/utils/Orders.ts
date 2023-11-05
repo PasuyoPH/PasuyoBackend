@@ -110,6 +110,8 @@ class OrderUtils {
       ]
     )
 
+    order.pf = (order.total + (order.total * .15)) * .15
+
     order.distance = calculatedDistance.distance
     order.total += (order.total * .15) + calculatedDistance.fee // add fee
     order.eta = calculatedDistance.eta

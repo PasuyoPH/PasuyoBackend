@@ -39,12 +39,12 @@ class GCashUtils {
           user,
           createdAt: Date.now(),
           receipt,
-          job: uid
+          job: uid ?? ''
         }
       )
 
     // insert to load request
-    {/*await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+    await this.server.db.table<LoadRequest>(Tables.LoadRequest)
       .insert(
         {
           uid: generatedTransactionId,
@@ -52,7 +52,7 @@ class GCashUtils {
           user,
           receipt
         }
-      )*/}
+      )
 
     return {
       id: generatedTransactionId,

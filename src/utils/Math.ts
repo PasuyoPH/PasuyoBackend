@@ -48,6 +48,20 @@ class MathUtils {
     )
   }
 
+  // use this new fees
+  public calculateDeliveryFee2 (distance: number | string) {
+    if (typeof distance === 'string')
+      distance = Number(distance)
+
+    let pasuyo = BASE_DELIVERY_FEE * .6,
+      rider = BASE_DELIVERY_FEE * .4
+
+    pasuyo += (Math.round(distance - 1) * 10) * .2
+    rider += (Math.round(distance - 1) * 10) * .8
+
+    return { pasuyo, rider }
+  }
+
   public getRiderRates(rider: Rider) {
     return IncomeRates[rider.rank ?? RiderRanks.RANK_BRONZE] ?? DEFAULT_INCOME_RATE
   }

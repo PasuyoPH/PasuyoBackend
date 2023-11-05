@@ -304,7 +304,8 @@ class Job2Utils {
         const order = await this.server.db.table<Order>(Tables.Orders)
           .select('*')
           .where('uid', uid)
-          .first()
+          .first(),
+          fees = await this.server.utils.math.calculateDeliveryFee2(order.distance)
 
         if (!order)
           throw new HttpError(
@@ -336,13 +337,18 @@ class Job2Utils {
               finished: false
             }
           )
+          // update rider credits
+          await this.server.db.table<Rider>(Tables.Riders)
+            .update('credits', rider.credits - (fees.pasuyo + order.pf))
+            .where('uid', rider.uid)
       } break
 
       case JobTypes.DELIVERY: { // handle delivery
         const delivery = await this.server.db.table<Delivery>(Tables.Deliveries)
-          .select('*')
-          .where('uid', uid)
-          .first()
+            .select('*')
+            .where('uid', uid)
+            .first(),
+            fees = await this.server.utils.math.calculateDeliveryFee2(delivery.distance)
 
         if (!delivery)
           throw new HttpError(
@@ -374,6 +380,11 @@ class Job2Utils {
               finished: false
             }
           )
+
+        // update rider credits
+        await this.server.db.table<Rider>(Tables.Riders)
+          .update('credits', rider.credits - fees.pasuyo)
+          .where('uid', rider.uid)
       } break
 
       default: {
