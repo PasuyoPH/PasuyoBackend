@@ -3,6 +3,7 @@ import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Address from '../types/database/Address'
+import Job2 from '../types/database/Job2'
 import Likes from '../types/database/Likes'
 import Merchant from '../types/database/Merchant'
 import MerchantAccount from '../types/database/MerchantAccount'
@@ -50,6 +51,30 @@ class MerchantUtils {
   }
 
   public async getOrders(merchant: Merchant) {
+    // SELECT ORDERS
+    const orders = await this.server.db.table<Order>(Tables.Orders)
+      .select('*')
+      .where('uid', merchant.uid)
+      .where('draft', false)
+
+    // get jobs
+    const jobs = await this.server.db.table<Job2>(Tables.Jobs2)
+      .select('*')
+      .whereIn('uid', orders.map((order) => order.uid))
+
+    // MAKE SURE TO RETURN SHIT
+    return orders.map(
+      (order) => {
+        const job = jobs.find((j) => j.uid === order.uid)
+
+        return {
+          ...order,
+          pickedUp: job.pickedUp,
+          finished: job.finished
+        }
+      }
+    )
+
     return await this.server.db
       .select(
         `${Tables.Orders}.*`,
