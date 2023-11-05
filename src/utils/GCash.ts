@@ -12,7 +12,7 @@ import PaymentCreated from '../types/http/PaymentCreated'
 class GCashUtils {
   constructor(private server: HttpServer) {}
 
-  public async createManualPaymentLoad(user: string, amount: number, receipt: string) {
+  public async createManualPaymentLoad(user: string, uid: string, amount: number, receipt: string) {
     if (!receipt)
       throw new HttpError(
         HttpErrorCodes.PAYMENT_INVALID_RECEIPT_GCASH,
@@ -38,7 +38,8 @@ class GCashUtils {
           amount,
           user,
           createdAt: Date.now(),
-          receipt
+          receipt,
+          job: uid
         }
       )
 
@@ -95,7 +96,8 @@ class GCashUtils {
           amount: job.total,
           user,
           createdAt: Date.now(),
-          receipt
+          receipt,
+          job: uid
         }
       )
     

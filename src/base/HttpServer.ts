@@ -32,6 +32,7 @@ import PaypalAuthToken from '../types/http/PaypalAuthToken'
 import Job2Schema from '../schemas/Job2'
 import TransactionSchema from '../schemas/Transaction'
 import DeliverySchema from '../schemas/Delivery'
+import MerchantAccountSchema from '../schemas/MerchantAccount'
 
 class HttpServer extends EventEmitter {
   public restana = restana()
@@ -156,7 +157,8 @@ class HttpServer extends EventEmitter {
       MerchantItemSchema,
       LikesSchema,
       TransactionSchema,
-      DeliverySchema
+      DeliverySchema,
+      MerchantAccountSchema
     ]
 
     for (const Schema of tables) {

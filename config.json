@@ -6,7 +6,7 @@
     "base": "/api"
   },
 
-  "debug": false,
+  "debug": true,
   "apiVersion": "2.1",
 
   "db": {

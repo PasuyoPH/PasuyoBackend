@@ -13,6 +13,8 @@ class TransactionSchema extends Schema {
     this.table.bigint('createdAt').notNullable()
     this.table.string('currency', 3).notNullable().defaultTo('PHP')
     this.table.text('receipt')
+    this.table.text('merchant')
+    this.table.text('job').notNullable()
   }
 }
 

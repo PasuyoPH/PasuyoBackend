@@ -43,7 +43,8 @@ const Tables = {
   MerchantItems: 'merchant_items',
   Orders: 'orders',
   Likes: 'likes',
-  Transactions: 'transactions'
+  Transactions: 'transactions',
+  MerchantAccounts: 'merchant_accounts'
 }
 
 export default Tables

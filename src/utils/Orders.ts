@@ -66,7 +66,7 @@ class OrderUtils {
       const orderData = orders.find((o) => o.item === item.uid)
 
       totalPrice += (item.price ?? 0) * orderData.quantity
-      ids[item.uid] = (ids[item.uid] ?? 0) + 1
+      ids[item.uid] = (orderData.quantity ?? 0)
     }
 
     // save as a new order

@@ -24,6 +24,7 @@ class CashUtils {
           status: TransactionStatus.COD_WAITING_FOR_PAYMENT,
           amount: job.total,
           user,
+          job: uid,
           createdAt: Date.now()
         }
       )

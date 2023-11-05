@@ -79,6 +79,8 @@ class Utils {
       }
     ) as { data: ReverseGeocodingResponse }
 
+    console.log(res)
+
     if (res.data.status !== 'OK')
       throw new HttpError(
         HttpErrorCodes.GEOCODE_FAILED,
@@ -129,6 +131,12 @@ class Utils {
     )
 
     return storageUrl + '/' + filePath
+  }
+
+  public async uploadBase64(file: string) {
+    return await this.uploadProfile(
+      Buffer.from(file, 'base64')
+    )
   }
 
   public async uploadProfile(file: Buffer) {

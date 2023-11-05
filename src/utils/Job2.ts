@@ -10,6 +10,7 @@ import Merchant from '../types/database/Merchant'
 import MerchantItem from '../types/database/MerchantItem'
 import Order, { OrderStatus } from '../types/database/Order'
 import { Rider, RiderStates } from '../types/database/Rider'
+import Transaction from '../types/database/Transaction'
 import User from '../types/database/User'
 
 // Move this as Job when code is production ready
@@ -25,6 +26,11 @@ class Job2Utils {
         }
       )
       .where({ uid: rider.uid })
+
+    // fetch transaction
+    /*const transaction = await this.server.db.table<Transaction>(Tables.Transactions)
+      .select('uid', 'status')
+      .where('')*/
 
     return await this.server.db.table<Job2>(Tables.Jobs2)
       .update({ finished: true })
@@ -246,7 +252,6 @@ class Job2Utils {
               quantity: Number(amount),
               item: null
             }
-      
           
             ids.push(itemUid)
           }

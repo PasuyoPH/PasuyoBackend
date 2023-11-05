@@ -77,6 +77,7 @@ class PaypalUtils {
           status: TransactionStatus.WAITING_USER_PAYMENT,
           amount: job.total,
           user,
+          job: uid,
           createdAt: Date.now()
         }
       )

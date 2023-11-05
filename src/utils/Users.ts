@@ -122,7 +122,7 @@ class UsersUtils {
 
   public async fromToken<T>(
     token: string,
-    userType: 'user' | 'rider' | 'admin' = 'user'
+    userType: 'user' | 'rider' | 'admin' | 'merchant' = 'user'
   ) {
     let table: string
 
@@ -137,6 +137,10 @@ class UsersUtils {
 
       case 'user':
         table = Tables.Users
+        break
+
+      case 'merchant':
+        table = Tables.MerchantAccounts
         break
     }
 

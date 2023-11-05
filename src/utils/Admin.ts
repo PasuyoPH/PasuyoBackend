@@ -4,11 +4,88 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Admin from '../types/database/Admin'
 import LoadRequest from '../types/database/LoadRequest'
+import Merchant from '../types/database/Merchant'
 import { Rider } from '../types/database/Rider'
+import Transaction from '../types/database/Transaction'
+import User from '../types/database/User'
 import { ProtocolSendTypes } from '../types/ws/Protocol'
 
 class AdminUtils {
   constructor(public server: HttpServer) {}
+
+  public async getStats() {
+    const { count: transactions, sum: sales } = await this.server.db.table<Transaction>(Tables.Transactions)
+      .count()
+      .sum('amount')
+      .first(),
+      { count: users } = await this.server.db.table<User>(Tables.Users)
+        .count()
+        .first(),
+      { count: riders } = await this.server.db.table<Rider>(Tables.Riders)
+        .count()
+        .first()
+
+    return {
+      transactions: Number(transactions),
+      users: Number(users),
+      riders: Number(riders),
+      sales
+    }
+  }
+
+  public async getTransactions() {
+    return await this.server.db.table<Transaction>(Tables.Transactions)
+      .select('*')
+  }
+
+  public async approveLoadAction(uid: string, approved?: boolean) {
+    const request = await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+      .select('*')
+      .where('uid', uid)
+      .first()
+
+    if (!request)
+      throw new HttpError(
+        HttpErrorCodes.ADMIN_LOAD_REQUEST_INVALID,
+        'This request does not exist. Please try agian.'
+      )
+
+    if (approved) // if approved, add amount to rider credits
+      await this.server.db.table<Rider>(Tables.Riders)
+        .update(
+          { credits: this.server.db.raw('credits + ?', [request.amount]) }
+        )
+
+    // delete this request
+    await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+      .delete()
+      .where('uid', uid)
+
+    return request
+  }
+
+  public async getLoadRequests(): Promise<(LoadRequest & { fullName: string})[]> {
+    /*return await this.server.db.table<LoadRequest>(Tables.LoadRequest)
+      .select('*')
+      .leftJoin(Tables.Riders,)*/
+
+    return await this.server.db
+      .select(
+        `${Tables.LoadRequest}.*`,
+        `${Tables.Riders}.fullName`
+      )
+      .from(Tables.LoadRequest)
+      .leftJoin(
+        Tables.Riders,
+        `${Tables.LoadRequest}.user`,
+        `${Tables.Riders}.uid`
+      )
+  }
+
+  public async getMerchants() {
+    return await this.server.db.table<Merchant>(Tables.Merchant)
+      .select('*')
+  }
 
   public async approveLoad(uid: string) {
     return await this.server.db.table<LoadRequest>(Tables.LoadRequest)

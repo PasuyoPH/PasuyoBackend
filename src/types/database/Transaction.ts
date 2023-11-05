@@ -19,6 +19,8 @@ interface Transaction {
   createdAt: number // when the transaction is made
   currency: string // what currency is used, should be PHP
   receipt?: string // receipt for gcash (manual)
+  merchant?: string // uid of merchant who made transaction
+  job: string // uid of job
 }
 
 export default Transaction

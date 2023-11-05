@@ -14,6 +14,9 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import ClientRequest from './ClientRequest'
 import User from '../types/database/User'
 import { Rider } from '../types/database/Rider'
+import MerchantAccount from '../types/database/MerchantAccount'
+import Tables from '../types/Tables'
+import Merchant from '../types/database/Merchant'
 
 class Path {
   public path   = '/'
@@ -23,7 +26,7 @@ class Path {
 
   // Reworked
   public permissions: PathPermissions = null
-  private _user: User | Admin | Rider = null // To be filled with data if requested permissions
+  private _user: User | Admin | Rider | Merchant = null // To be filled with data if requested permissions
   private _token = null // To be filled with user token data if requested permissions
 
   private clean(data: PathReturnObject | CustomError) {
@@ -104,6 +107,23 @@ class Path {
                 this._user = admin
                 break
 
+              case 'merchant':
+                const merchant = await this.server.utils.users.fromToken<MerchantAccount>(token, 'merchant')
+                if (!merchant)
+                  throw new HttpError(
+                    HttpErrorCodes.MERCHANT_INVALID_ACCOUNT,
+                    'Invalid merchant account token provided.'
+                  )
+
+                // fetch merchant data
+                const data = await this.server.db.table<Merchant>(Tables.Merchant)
+                  .select('*')
+                  .where({ uid: merchant.uid })
+                  .first()
+
+                this._user = data
+                break
+
               default: ''
                 break
             }
@@ -169,6 +189,10 @@ class Path {
   
   public get rider() {
     return this._user as Rider
+  }
+
+  public get merchant() {
+    return this._user as Merchant
   }
 
   public get token() {

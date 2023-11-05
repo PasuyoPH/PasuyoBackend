@@ -55,7 +55,7 @@ class AddressUtils {
    * @param uid The id of the database to delete.
    * @param user The id of the user who made the address. This is for safety reasons.
    */
-  public async delete(uid: string, user: string) {
+  public async delete(uid: string, user: string, merchant?: boolean) {
     // Immediately check if this address is being used
     const addressUsed = await this.server.db.table<AddressUsed>('address_used')
       .select('type')
@@ -70,7 +70,13 @@ class AddressUtils {
     // Delete address
     return await this.server.db.table<Address>(Tables.Address)
       .delete()
-      .where({ uid, user })
+      .where(
+        {
+          uid,
+          user,
+          ...(merchant ? { merchant } : {})
+        }
+      )
   }
   
   /**

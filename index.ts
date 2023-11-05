@@ -50,7 +50,6 @@ import GetAdminSelf from './src/routes/admin/GetAdminSelf'
 import AdminApproveLoad from './src/routes/admin/AdminApproveLoad'
 import RiderRequestLoad from './src/routes/rider/RiderRequestLoad'
 import GetAdminToken from './src/routes/admin/GetAdminToken'
-import AddItemToMerchant from './src/routes/merchant/AddItem'
 import GetMerchantItems from './src/routes/merchant/GetItems'
 import GetMerchants from './src/routes/merchant/GetMerchants'
 import LikeMerchantItem from './src/routes/merchant/LikeMerchantItem'
@@ -74,17 +73,31 @@ import GetUserLikes from './src/routes/user/GetUserLikes'
 import GetUserDeliveries from './src/routes/delivery/GetUserDeliveries'
 import CreateDelivery from './src/routes/delivery/CreateDelivery'
 import UploadProfile from './src/routes/UploadProfile'
-import GetMerchantAddresses from './src/routes/merchant/GetMerchantAddresses'
+import GetMerchantAddresses from './src/routes/merchant/MerchantGetAddresses'
 import ViewJobs from './src/routes/job2/ViewJobs'
 import GetJobData from './src/routes/job2/GetJobData'
 import GetJobMap from './src/routes/job2/GetJobMap'
 import TakeJob from './src/routes/job2/TakeJob'
 import JobDone from './src/routes/job2/JobDone'
 import JobPickedUp from './src/routes/job2/JobPickedUp'
-import GetUserJobs2 from './src/routes/job2/GetUserJobs'
 import GetUserActiveDeliveries from './src/routes/user/GetUserActiveDeliveries'
 import DeleteDeliveryDraft from './src/routes/delivery/DeleteDeliveryDraft'
 import GetUserJobAddresses from './src/routes/user/GetUserJobAddresses'
+import AdminGetMerchants from './src/routes/admin/AdminGetMerchants'
+import AdminGetLoadRequests from './src/routes/admin/AdminGetLoadRequests'
+import AdminLoadAction from './src/routes/admin/AdminLoadAction'
+import AdminGetTransactions from './src/routes/admin/AdminGetTransactions'
+import AdminGetStats from './src/routes/admin/AdminGetStats'
+import MerchantGetToken from './src/routes/merchant/MerchantGetToken'
+import MerchantGetAddresses from './src/routes/merchant/MerchantGetAddresses'
+import MerchantUpdateItem from './src/routes/merchant/MerchantUpdateItem'
+import MerchantNewAddress from './src/routes/merchant/MerchantNewAddress'
+import MerchantAddItem from './src/routes/merchant/MerchantAddItem'
+import MerchantDeleteItem from './src/routes/merchant/MerchantDeleteItem'
+import MerchantDeleteAddress from './src/routes/merchant/MerchantDeleteAddress'
+import MerchantUpdateSelf from './src/routes/merchant/MerchantupdateSelf'
+import MerchantGetOrders from './src/routes/merchant/MerchantGetOrders'
+import GetRiderStats from './src/routes/rider/GetRiderStats'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -153,6 +166,7 @@ const main = async () => {
   await http.register(GetRider)
   await http.register(RiderOptIn)
   await http.register(RiderRequestLoad)
+  await http.register(GetRiderStats)
 
   // User tokens
   await http.register(UpdateUserExpoToken)
@@ -168,7 +182,6 @@ const main = async () => {
   await http.register(GetAdminToken)
 
   // merchant
-  await http.register(AddItemToMerchant)
   await http.register(GetMerchantItems)
   await http.register(GetMerchants)
   await http.register(LikeMerchantItem)
@@ -216,6 +229,25 @@ const main = async () => {
   await http.register(TakeJob)
   await http.register(JobDone)
   await http.register(JobPickedUp)
+
+  // new admin
+  await http.register(AdminGetMerchants)
+  await http.register(AdminGetLoadRequests)
+  await http.register(AdminLoadAction)
+  await http.register(AdminGetTransactions)
+  await http.register(AdminGetStats)
+
+  // merchant self
+  await http.register(MerchantGetToken)
+  await http.register(MerchantGetAddresses)
+  await http.register(MerchantUpdateItem)
+  await http.register(MerchantGetToken)
+  await http.register(MerchantNewAddress)
+  await http.register(MerchantAddItem)
+  await http.register(MerchantDeleteItem)
+  await http.register(MerchantDeleteAddress)
+  await http.register(MerchantUpdateSelf)
+  await http.register(MerchantGetOrders)
 
   try {
     await http.ready()

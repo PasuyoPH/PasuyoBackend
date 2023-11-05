@@ -56,7 +56,7 @@ class PaymentUtils {
         switch (paymentType) {    
           case PaymentTypes.GCASH_MANUAL: {
             // support gcash only for now
-            result = await this.server.utils.gcash.createManualPaymentLoad(user, amount, receipt)
+            result = await this.server.utils.gcash.createManualPaymentLoad(user, uid, amount, receipt)
           } break
     
           default: {

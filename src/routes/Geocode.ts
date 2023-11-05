@@ -1,13 +1,12 @@
 import ClientRequest from '../base/ClientRequest'
 import Path from '../base/Path'
-import PathPermissions from '../types/path/PathPermissions'
 
 class Geocode extends Path {
   public path = '/geo'
   public method = 'post'
-  public permissions: PathPermissions = {
+  /*public permissions: PathPermissions = {
     check: 'user'
-  }
+  }*/
 
   public async onRequest(req: ClientRequest) {
     const lat = req.body<number>('lat'),

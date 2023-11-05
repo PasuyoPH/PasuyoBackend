@@ -2,8 +2,10 @@ import HttpError from '../base/HttpError'
 import HttpServer from '../base/HttpServer'
 import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
+import Delivery from '../types/database/Delivery'
 import Job, { JobStatus } from '../types/database/Job'
 import Job2 from '../types/database/Job2'
+import Order from '../types/database/Order'
 import { Rider } from '../types/database/Rider'
 
 class RiderUtils {
@@ -16,6 +18,30 @@ class RiderUtils {
         file
       }
     )
+  }
+
+  public async getRiderStats(uid: string) {
+    const { count: rides } = await this.server.db.table<Job2>(Tables.Jobs2)
+      .where('rider', uid)
+      .count()
+      .first()
+
+    // get delivery hours
+    const { sum: deliverySecs } = await this.server.db.table<Delivery>(Tables.Deliveries)
+      .where('rider', uid)
+      .count()
+      .sum('eta')
+      .first(),
+      { sum: orderSecs } = await this.server.db.table<Order>(Tables.Orders)
+        .where('rider', uid)
+        .count()
+        .sum('eta')
+        .first()
+
+    return {
+      rides,
+      hours: (deliverySecs + orderSecs) / 3600
+    }
   }
 
   public async optIn(uid: string, status: boolean) {
