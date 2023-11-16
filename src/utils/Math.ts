@@ -41,7 +41,7 @@ class MathUtils {
     if (typeof distance === 'string')
       distance = Number(distance)
 
-    return Math.round(
+    return Math.ceil(
       BASE_DELIVERY_FEE + (
         (distance - 1) * 10
       )
@@ -56,8 +56,8 @@ class MathUtils {
     let pasuyo = BASE_DELIVERY_FEE * .6,
       rider = BASE_DELIVERY_FEE * .4
 
-    pasuyo += (Math.round(distance - 1) * 10) * .2
-    rider += (Math.round(distance - 1) * 10) * .8
+    pasuyo += (Math.ceil(distance - 1) * 10) * .2
+    rider += (Math.ceil(distance - 1) * 10) * .8
 
     return { pasuyo, rider }
   }
@@ -125,10 +125,15 @@ class MathUtils {
       totalSeconds += result.duration?.value ?? 0
     }
 
-    const fee = this.calculateDeliveryFee(Math.round(totalMeters / 1000))
+    const fee = this.calculateDeliveryFee(
+      Math.ceil(
+        (totalMeters / 1000)
+      )
+    )
+
     return {
       fee,
-      distance: Math.round(
+      distance: Math.ceil(
         (totalMeters / 1000) * 10
       ) / 10, // km
       eta: totalSeconds,

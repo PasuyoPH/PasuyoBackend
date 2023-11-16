@@ -119,9 +119,7 @@ class OrderUtils {
 
     order.distance = calculatedDistance.distance
     order.total += (order.total * .15) + calculatedDistance.fee // add fee
-    order.eta = calculatedDistance.eta + highestEta
-
-    // fetch highest eta
+    order.eta = calculatedDistance.eta + (highestEta * 60)
     
     // insert into database
     await this.server.db.table<Order>(Tables.Orders)
