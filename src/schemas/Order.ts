@@ -30,6 +30,8 @@ class OrderSchema extends Schema {
 
     this.table.tinyint('type').defaultTo(JobTypes.ORDER)
     this.table.double('pf').defaultTo(0.00)
+
+    this.table.boolean('pending').defaultTo(true)
   }
 }
 

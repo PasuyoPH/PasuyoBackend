@@ -84,14 +84,10 @@
       "image": "https://cdn-icons-png.flaticon.com/512/5278/5278592.png"
     },
     {
-      "name": "PayPal",
-      "image": "https://static.vecteezy.com/system/resources/previews/022/100/707/original/paypal-logo-transparent-free-png.png",
-      "disabled": true
-    },
-    {
       "name": "GCash (Manual)",
       "image": "https://play-lh.googleusercontent.com/QNP0Aj2hyumAmYiWVAsJtY2LLTQnzHxdW7-DpwFUFNkPJjgRxi-BXg7A4yI6tgYKMeU",
-      "requireImage": true
+      "requireImage": true,
+      "hide": ["user"]
     }
   ]
 }

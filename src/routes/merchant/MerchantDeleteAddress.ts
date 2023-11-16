@@ -4,7 +4,7 @@ import PathPermissions from '../../types/path/PathPermissions'
 
 class MerchantDeleteAddress extends Path {
   public method = 'delete'
-  public path = '/merchant/@me/addresses/:uid'
+  public path = '/merchants/@me/addresses/:uid'
   public permissions: PathPermissions = {
     check: 'merchant'
   }

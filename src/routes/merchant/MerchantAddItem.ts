@@ -6,7 +6,7 @@ import PathPermissions from '../../types/path/PathPermissions'
 // add a new item to merchant item list
 class MerchantAddItem extends Path {
   public method = 'post'
-  public path = '/merchant/@me/items'
+  public path = '/merchants/@me/items'
   public permissions: PathPermissions = {
     check: 'merchant'
   }
@@ -15,13 +15,12 @@ class MerchantAddItem extends Path {
     const name = req.body<string>('name'),
       price = req.body<number>('price'),
       banner = req.body<string>('banner'),
-      image = req.body<string>('image'),
-      types = req.body<ItemTypes[]>('types') ?? []
+      image = req.body<string>('image')
 
     return {
       value: await this.server.utils.merchant.addItem(
         this.merchant,
-        { name, price, banner, image, types }
+        { name, price, banner, image, available: false, eta: 0 }
       ),
       code: 200
     }

@@ -16,6 +16,7 @@ class Job2Schema extends Schema {
 
     this.table.boolean('finished').defaultTo(false)
     this.table.boolean('pickedUp').defaultTo(false)
+    this.table.boolean('cancelled').defaultTo(false)
   }
 }
 

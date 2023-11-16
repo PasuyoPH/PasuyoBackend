@@ -33,9 +33,10 @@ interface Order {
   draft?: boolean
 
   type?: JobTypes
+  pending?: boolean
   
   // fees
-  cf?: number
+  pf?: number
 }
 
 export default Order

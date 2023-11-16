@@ -8,8 +8,11 @@ interface Job2 {
   type: JobTypes
   dataUid: string // uid of the job data
   createdAt: number
+
+  // flags
   finished?: boolean // just a flag
   pickedUp?: boolean
+  cancelled?: boolean
 }
 
 export default Job2

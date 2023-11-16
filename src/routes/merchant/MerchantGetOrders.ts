@@ -2,7 +2,7 @@ import Path from '../../base/Path'
 import PathPermissions from '../../types/path/PathPermissions'
 
 class MerchantGetOrders extends Path {
-  public path = '/merchant/@me/orders'
+  public path = '/merchants/@me/orders'
   public method = 'get'
   public permissions: PathPermissions = {
     check: 'merchant'

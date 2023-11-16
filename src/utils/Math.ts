@@ -125,7 +125,7 @@ class MathUtils {
       totalSeconds += result.duration?.value ?? 0
     }
 
-    const fee = this.calculateDeliveryFee(totalMeters / 1000)
+    const fee = this.calculateDeliveryFee(Math.round(totalMeters / 1000))
     return {
       fee,
       distance: Math.round(

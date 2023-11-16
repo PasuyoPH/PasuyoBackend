@@ -46,6 +46,7 @@ class UsersUtils {
         // build a query that will get the merchant with most amount of sales, excluding those we already have.
         merchants = await this.server.db.table<Merchant>(Tables.Merchant)
           .select('*')
+          .where('open', true)
           .orderByRaw('CASE WHEN uid IN (?) THEN 0 ELSE 1 END, sales DESC', [merchantsIds])
           .limit(amountNeeded)
 
@@ -56,10 +57,11 @@ class UsersUtils {
       const merchants = await this.server.db.table<Merchant>(Tables.Merchant)
         .select('*')
         .whereIn('uid', [...merchantsIds])
+        .where('open', true)
 
       // now let's calculate the additional score for each merchant based on sales
       for (const merchant of merchants)
-        scoreData[merchant.uid] += this.server.utils.math.calculateSalesToScore(merchant.sales)
+        scoreData[merchant.uid] += this.server.utils.math.calculateSalesToScore(5)
 
       // Now finally, let's sort the merchants based on their score from greatest to least
       return merchants.sort(

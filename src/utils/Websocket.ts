@@ -41,7 +41,7 @@ class WsUtils {
     )
   }
 
-  public send(data: WsSendProtocol): Promise<Error | WsSendProtocol> {
+  public send(data: any): Promise<Error | any> {
     return new Promise(
       (resolve, reject) => {
         if (!this.server.config.ws.enabled) return resolve(null)

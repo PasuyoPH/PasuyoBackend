@@ -101,6 +101,10 @@ import GetRiderStats from './src/routes/rider/GetRiderStats'
 import MerchantGetStats from './src/routes/merchant/MerchantGetStats'
 import AdminApproveGCash from './src/routes/admin/AdminApproveGCash'
 import AdminNewMerchant from './src/routes/admin/AdminNewMerchant'
+import MerchantGetItems from './src/routes/merchant/MerchantGetItems'
+import MerchantGetSelf from './src/routes/merchant/MerchantGetSelf'
+import MerchantApproveOrder from './src/routes/merchant/MerchantApproveOrder'
+import MerchantDisapproveOrder from './src/routes/merchant/MerchantDisapproveOrder'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -254,6 +258,10 @@ const main = async () => {
   await http.register(MerchantUpdateSelf)
   await http.register(MerchantGetOrders)
   await http.register(MerchantGetStats)
+  await http.register(MerchantGetItems)
+  await http.register(MerchantGetSelf)
+  await http.register(MerchantApproveOrder)
+  await http.register(MerchantDisapproveOrder)
 
   try {
     await http.ready()

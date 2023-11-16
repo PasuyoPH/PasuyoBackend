@@ -1,18 +1,21 @@
 import Path from '../../base/Path'
 import PathPermissions from '../../types/path/PathPermissions'
 
-class MerchantGetStats extends Path {
-  public path = '/merchants/@me/stats'
+class MerchantGetSelf extends Path {
+  public path = '/merchants/@me/self'
+  public method = 'get'
   public permissions: PathPermissions = {
     check: 'merchant'
   }
 
   public async onRequest() {
+    console.log(this.merchant)
+
     return {
-      value: await this.server.utils.merchant.getStats(this.merchant),
+      value: this.merchant,
       code: 200
     }
   }
 }
 
-export default MerchantGetStats
+export default MerchantGetSelf

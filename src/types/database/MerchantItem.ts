@@ -7,16 +7,21 @@ enum ItemTypes {
 }
 
 interface MerchantItem {
+  // default data
   uid: string
   merchant: string
+  addedAt: number
+
+  // customizable data
   name: string
   price: number
-  image?: string
-  stock: number
-  type: ItemTypes
-  banner?: string
-  addedAt: number
-  types: ItemTypes[] // for filters
+  image?: string // logo
+  banner?: string // banner image to display
+  eta?: number
+
+  // state data
+  available?: boolean
+  hidden?: boolean
 }
 
 export default MerchantItem

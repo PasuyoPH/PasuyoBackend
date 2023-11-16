@@ -5,7 +5,7 @@ import PathPermissions from '../../types/path/PathPermissions'
 
 class MerchantUpdateSelf extends Path {
   public method = 'patch'
-  public path = '/merchant/@me'
+  public path = '/merchants/@me'
   public permissions: PathPermissions = {
     check: 'merchant'
   }

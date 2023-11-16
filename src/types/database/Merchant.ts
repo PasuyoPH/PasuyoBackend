@@ -1,19 +1,22 @@
-import { Geo } from './Address'
 import { ItemTypes } from './MerchantItem'
 
-interface Merchant extends Geo { // this would include lat & long due to it having specific branch locations
+interface Merchant {
   uid: string
   createdAt: number
+  
+  // customizable data
+  name: string
   banner?: string
   logo?: string
-  name: string
   bio?: string
-  sales?: number
   tags?: string[]
   priceLevels?: number
   accent?: string
-  types?: ItemTypes[] // for filters
+  types?: ItemTypes[] // for filter
+  
+  // state data
   open?: boolean
+  hide?: boolean
 }
 
 export default Merchant

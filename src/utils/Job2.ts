@@ -10,8 +10,8 @@ import Merchant from '../types/database/Merchant'
 import MerchantItem from '../types/database/MerchantItem'
 import Order, { OrderStatus } from '../types/database/Order'
 import { Rider, RiderStates } from '../types/database/Rider'
-import Transaction from '../types/database/Transaction'
 import User from '../types/database/User'
+import * as ProtocolTypes from '../types/protocol/types'
 
 // Move this as Job when code is production ready
 class Job2Utils {
@@ -313,6 +313,18 @@ class Job2Utils {
             'This order can\'t be found. Please make sure you provided the right id.'
           )
 
+        if (order.pending)
+          throw new HttpError(
+            HttpErrorCodes.JOB2_ORDER_PENDING,
+            'This order is still pending. Please wait until the merchant has approved this order.'
+          )
+
+        if (rider.credits < order.total)
+          throw new HttpError(
+            HttpErrorCodes.JOB_NO_CREDITS_OR_NOT_OFFLINE,
+            'You don\'t have enough credits for this job! Please load more to be able to accept this.'
+          )
+
         // update orders
         await this.server.db.table<Order>(Tables.Orders)
           .update(
@@ -337,10 +349,9 @@ class Job2Utils {
               finished: false
             }
           )
+
           // update rider credits
-          await this.server.db.table<Rider>(Tables.Riders)
-            .update('credits', rider.credits - (fees.pasuyo + order.pf))
-            .where('uid', rider.uid)
+          rider.credits -= Math.round(fees.pasuyo + order.pf)
       } break
 
       case JobTypes.DELIVERY: { // handle delivery
@@ -354,6 +365,12 @@ class Job2Utils {
           throw new HttpError(
             HttpErrorCodes.DELIVERY_MISSING_DATA,
             'This delivery can\'t be found. Please make sure you provided the right id.'
+          )
+
+        if (rider.credits < delivery.fee)
+          throw new HttpError(
+            HttpErrorCodes.JOB_NO_CREDITS_OR_NOT_OFFLINE,
+            'You don\'t have enough credits for this job! Please load more to be able to accept this.'
           )
 
         // update delivery
@@ -382,9 +399,7 @@ class Job2Utils {
           )
 
         // update rider credits
-        await this.server.db.table<Rider>(Tables.Riders)
-          .update('credits', rider.credits - fees.pasuyo)
-          .where('uid', rider.uid)
+        rider.credits -= Math.round(fees.pasuyo)
       } break
 
       default: {
@@ -394,6 +409,15 @@ class Job2Utils {
         )
       }
     }
+
+    // send to ws
+    if (this.server.config.ws.enabled)
+      this.server.utils.ws.send(
+        {
+          c: ProtocolTypes.in.ACCEPTED_JOB,
+          d: { uid }
+        }
+      )
 
     // set rider has job
     await this.server.db.table<Rider>(Tables.Riders)

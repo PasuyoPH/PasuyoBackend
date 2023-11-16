@@ -1,8 +1,8 @@
 import HttpServer from '../../base/HttpServer'
-import { ProtocolSendTypes } from '../../types/ws/Protocol'
+import * as ProtocolTypes from '../../types/protocol/types'
 
 class OpenEvent {
-  constructor(public server: HttpServer) {}
+    constructor(public server: HttpServer) {}
 
   public async handle() {
     await this.server.log('WebSocket connection successfully open.')
@@ -11,8 +11,11 @@ class OpenEvent {
     await this.server.log('Computed hash for backend initiation:', this.server.utils.ws.hash)
     await this.server.utils.ws.send(
       {
-        c: ProtocolSendTypes.INIT_BACKEND,
-        d: { hash: this.server.utils.ws.hash }
+        c: ProtocolTypes.in.IDENTIFY,
+        d: {
+          token: this.server.utils.ws.hash,
+          type: 0
+        }
       }
     )
   }

@@ -106,7 +106,8 @@ enum HttpErrorCodes {
   LIKE_ITEM_NOT_EXIST = 17000,
 
   // New Job codes
-  JOB2_RIDER_NO_JOB = 18000,
+  JOB2_RIDER_NO_JOB  = 18000,
+  JOB2_ORDER_PENDING = 18001,
 
   // load request codes
   LOAD_TOO_LOW = 19000,

@@ -33,7 +33,7 @@ class OrderUtils {
 
     // fetch all the items first
     const items = await this.server.db.table<MerchantItem>(Tables.MerchantItems)
-      .select('price', 'uid', 'merchant')
+      .select('price', 'uid', 'merchant', 'eta')
       .whereIn(
         'uid',
         orders.map(
@@ -59,14 +59,18 @@ class OrderUtils {
     // we can now calculate total price
     // same as generate the "id-quantity" array
     const ids: Record<string, number> = {},
-      uid = await this.server.utils.crypto.genUID()
-    let totalPrice = 0
+      uid = await this.server.utils.crypto.genUID(2)
+    let totalPrice = 0,
+      highestEta = 0
 
     for (const item of items) {
       const orderData = orders.find((o) => o.item === item.uid)
 
       totalPrice += (item.price ?? 0) * orderData.quantity
       ids[item.uid] = (orderData.quantity ?? 0)
+
+      if (highestEta < (item.eta ?? 0))
+        highestEta = item.eta
     }
 
     // save as a new order
@@ -82,7 +86,8 @@ class OrderUtils {
       status: OrderStatus.ORDER_PROCESSED,
       user,
       deliverTo: address.uid,
-      draft: true
+      draft: true,
+      pending: true
     }
 
     // get address used by merchant
@@ -110,11 +115,13 @@ class OrderUtils {
       ]
     )
 
-    order.pf = (order.total + (order.total * .15)) * .15
+    order.pf = order.total * .15
 
     order.distance = calculatedDistance.distance
     order.total += (order.total * .15) + calculatedDistance.fee // add fee
-    order.eta = calculatedDistance.eta
+    order.eta = calculatedDistance.eta + highestEta
+
+    // fetch highest eta
     
     // insert into database
     await this.server.db.table<Order>(Tables.Orders)

@@ -31,7 +31,6 @@ class AdminNewMerchant extends Path {
         logo: null,
         name: null,
         bio:  null,
-        sales: 0,
         priceLevels: 0,
         accent: null,
         open: false

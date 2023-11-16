@@ -2,7 +2,7 @@ import ClientRequest from '../../base/ClientRequest'
 import Path from '../../base/Path'
 
 class MerchantGetToken extends Path {
-  public path = '/merchant/@me/token'
+  public path = '/merchants/@me/token'
   public method = 'post'
 
   public async onRequest(req: ClientRequest) {

@@ -1,7 +1,7 @@
 enum PaymentTypes {
   COD,
-  PAYPAL_PP,
-  GCASH_MANUAL
+  GCASH_MANUAL,
+  PAYPAL_PP
 }
 
 export default PaymentTypes

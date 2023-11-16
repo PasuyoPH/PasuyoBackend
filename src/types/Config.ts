@@ -68,6 +68,7 @@ interface PaymentMethodConfig {
   image: string
   disabled?: boolean
   requireImage?: boolean
+  hide?: string[] | string
 }
 
 interface IConfig {

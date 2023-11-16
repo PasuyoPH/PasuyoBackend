@@ -10,13 +10,15 @@ import MerchantAccount from '../types/database/MerchantAccount'
 import MerchantItem, { ItemTypes } from '../types/database/MerchantItem'
 import Order from '../types/database/Order'
 import NewAddressData from '../types/http/NewAddressData'
+import * as ProtocolTypes from '../types/protocol/types'
 
 interface UpdateItemData {
   name: string
   price: number
   banner: string
   image: string
-  types: ItemTypes[]
+  available: boolean
+  eta: number
 }
 
 interface UpdateMerchantData {
@@ -31,6 +33,38 @@ interface UpdateMerchantData {
 
 class MerchantUtils {
   constructor(public server: HttpServer) {}
+
+  public async approve(merchant: Merchant, uid: string) {
+    await this.server.db.table<Order>(Tables.Orders)
+      .update('pending', false)
+      .where('uid', uid)
+
+    const address = await this.server.db.table<Address>(Tables.Address)
+      .select('*')
+      .where({ user: merchant.uid, merchant: true })
+      .first()
+
+    await this.server.ws.send(
+      JSON.stringify(
+        {
+          c: ProtocolTypes.in.NEW_JOB,
+          d: {
+            uid,
+            geo: {
+              latitude: address.latitude,
+              longitude: address.longitude
+            }
+          }
+        }
+      )
+    )
+  }
+
+  public async disapprove(uid: string) {
+    await this.server.db.table<Order>(Tables.Orders)
+      .delete()
+      .where('uid', uid)
+  }
 
   public async getStats(merchant: Merchant) {
     const { count: orders, sum: sales  } = await this.server.db.table<Order>(Tables.Orders)
@@ -51,7 +85,45 @@ class MerchantUtils {
   }
 
   public async getOrders(merchant: Merchant) {
-    // SELECT ORDERS
+    // Fetch ALL merchant orders and their items
+    const orders = await this.server.db.table<Order>(Tables.Orders)
+      .select('*')
+      .where('merchant', merchant.uid)
+      .where('draft', false)
+
+    // code below by chatgpt, optimized. dont touch
+    const data = await Promise.all(orders.map(async (order) => {
+      const itemsData = new Map<string, number>(
+        order.items.split(',')
+          .map((value) => {
+            const [key, val] = value.split('-');
+            return [key, Number(val)];
+          })
+      );
+    
+      const items = await this.server.db.table<MerchantItem & { quantity?: number }>(Tables.MerchantItems)
+        .select('name', 'uid')
+        .whereIn('uid', [...itemsData.keys()]),
+        job = await this.server.db.table<Job2>(Tables.Jobs2)
+          .select('finished', 'pickedUp')
+          .where('uid', order.uid)
+          .first()
+    
+      return {
+        uid: order.uid,
+        pending: order.pending,
+        total: order.total,
+        items: items.map((item) => {
+          (item as any).quantity = itemsData.get(item.uid);
+          return item;
+        }),
+        finished: job?.finished,
+        pickedUp: job?.pickedUp
+      };
+    }));
+    
+    return data;
+    /*// SELECT ORDERS
     const orders = await this.server.db.table<Order>(Tables.Orders)
       .select('*')
       .where('uid', merchant.uid)
@@ -72,8 +144,8 @@ class MerchantUtils {
           pickedUp: job.pickedUp,
           finished: job.finished
         }
-      }
-    )
+      }*/
+    
 
     return await this.server.db
       .select(
@@ -244,10 +316,7 @@ class MerchantUtils {
       merchant: merchant.uid,
       uid: await this.server.utils.crypto.genUID(),
       addedAt: Date.now(),
-      type: 4,
-      stock: 0,
       ...item,
-      types: `{${item.types.join(',')}}` as any
     }
     
     await this.server.db.table<MerchantItem>(Tables.MerchantItems)
@@ -354,6 +423,7 @@ class MerchantUtils {
   public async getNewItems(limit: number = 5) {
     return await this.server.db.table<MerchantItem>(Tables.MerchantItems)
       .select('*')
+      .where('available', true)
       .orderBy('addedAt', 'desc')
       .limit(limit)
   }
