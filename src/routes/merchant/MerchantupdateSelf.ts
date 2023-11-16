@@ -5,7 +5,7 @@ import PathPermissions from '../../types/path/PathPermissions'
 
 class MerchantUpdateSelf extends Path {
   public method = 'patch'
-  public path = '/merchants/@me'
+  public path = '/merchant/@me'
   public permissions: PathPermissions = {
     check: 'merchant'
   }
@@ -19,11 +19,9 @@ class MerchantUpdateSelf extends Path {
       accent = req.body<string>('accent') ?? undefined,
       open = req.body<boolean>('open') ?? false
 
-    console.log(this.merchant)
-
     return {
       value: await this.server.utils.merchant.updateMerchant(
-        this.merchant.uid,
+        this.merchant,
         { name, bio, banner, logo, types, accent, open }
       ),
       code: 200

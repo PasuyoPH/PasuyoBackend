@@ -10,7 +10,7 @@ class MerchantSchema extends Schema {
     this.table.bigint('createdAt')
 
     // customizable data
-    this.table.text('name').notNullable()
+    this.table.text('name')
     this.table.text('banner')
     this.table.text('logo')
     this.table.text('bio')
