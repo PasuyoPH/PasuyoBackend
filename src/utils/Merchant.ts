@@ -227,7 +227,7 @@ class MerchantUtils {
     )
   }
 
-  public async updateMerchant(merchant: Merchant, data: UpdateMerchantData) {
+  public async updateMerchant(uid: string, data: UpdateMerchantData) {
     if (data.name.length < 1)
       throw new HttpError(
         HttpErrorCodes.MERCHANT_INVALID_UPDATE_DATA,
@@ -236,7 +236,7 @@ class MerchantUtils {
 
     return await this.server.db.table<Merchant>(Tables.Merchant)
       .update(data)
-      .where({ uid: merchant.uid })
+      .where({ uid })
   }
 
   public async updateItem(merchant: Merchant, uid: string, data: UpdateItemData) {

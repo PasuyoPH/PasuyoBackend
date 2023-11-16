@@ -19,9 +19,11 @@ class MerchantUpdateSelf extends Path {
       accent = req.body<string>('accent') ?? undefined,
       open = req.body<boolean>('open') ?? false
 
+    console.log(this.merchant)
+
     return {
       value: await this.server.utils.merchant.updateMerchant(
-        this.merchant,
+        this.merchant.uid,
         { name, bio, banner, logo, types, accent, open }
       ),
       code: 200
