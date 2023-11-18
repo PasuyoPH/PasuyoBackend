@@ -105,6 +105,7 @@ import MerchantGetItems from './src/routes/merchant/MerchantGetItems'
 import MerchantGetSelf from './src/routes/merchant/MerchantGetSelf'
 import MerchantApproveOrder from './src/routes/merchant/MerchantApproveOrder'
 import MerchantDisapproveOrder from './src/routes/merchant/MerchantDisapproveOrder'
+import NewPaymentRider from './src/routes/payment/NewPaymentRider'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -262,6 +263,8 @@ const main = async () => {
   await http.register(MerchantGetSelf)
   await http.register(MerchantApproveOrder)
   await http.register(MerchantDisapproveOrder)
+  
+  await http.register(NewPaymentRider)
 
   try {
     await http.ready()
