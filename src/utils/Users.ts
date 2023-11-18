@@ -278,7 +278,7 @@ class UsersUtils {
           ...(
             rider ? {
               state: RiderStates.RIDER_ONLINE,
-              verified: false,
+              verified: true,
               rank: RiderRanks.RANK_BRONZE,
               xp: 0.00,
               optInLocation: true
