@@ -4,6 +4,7 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import { AddressUsed } from '../types/database/AddressUsed'
 import ExpoToken from '../types/database/ExpoToken'
+import Job2 from '../types/database/Job2'
 import Likes from '../types/database/Likes'
 import Merchant from '../types/database/Merchant'
 import Referral from '../types/database/Referral'
@@ -13,6 +14,15 @@ import AuthCreateData from '../types/http/AuthCreateData'
 
 class UsersUtils {
   constructor(public server: HttpServer) {}
+
+  public async getActiveJobs(uid: string) {
+    return (
+      await this.server.db.table<Job2>(Tables.Jobs2)
+        .select('*')
+        .where('finished', false)
+        .where('user', uid)
+    ).length
+  }
 
   public async getUserJobAddresses(uid: string) {
     const addresses = await this.server.db.table<AddressUsed>(Tables.AddressUsed)

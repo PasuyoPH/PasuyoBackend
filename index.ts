@@ -106,6 +106,7 @@ import MerchantGetSelf from './src/routes/merchant/MerchantGetSelf'
 import MerchantApproveOrder from './src/routes/merchant/MerchantApproveOrder'
 import MerchantDisapproveOrder from './src/routes/merchant/MerchantDisapproveOrder'
 import NewPaymentRider from './src/routes/payment/NewPaymentRider'
+import GetUserActiveJobs from './src/routes/user/GetUserActiveJobs'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -175,6 +176,7 @@ const main = async () => {
   await http.register(RiderOptIn)
   await http.register(RiderRequestLoad)
   await http.register(GetRiderStats)
+  await http.register(NewPaymentRider)
 
   // User tokens
   await http.register(UpdateUserExpoToken)
@@ -263,9 +265,10 @@ const main = async () => {
   await http.register(MerchantGetSelf)
   await http.register(MerchantApproveOrder)
   await http.register(MerchantDisapproveOrder)
-  
-  await http.register(NewPaymentRider)
 
+  // user self
+  await http.register(GetUserActiveJobs)
+  
   try {
     await http.ready()
     await http.log('Backend ready with port:', config.http.port)
