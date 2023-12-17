@@ -107,6 +107,7 @@ import MerchantApproveOrder from './src/routes/merchant/MerchantApproveOrder'
 import MerchantDisapproveOrder from './src/routes/merchant/MerchantDisapproveOrder'
 import NewPaymentRider from './src/routes/payment/NewPaymentRider'
 import GetUserActiveJobs from './src/routes/user/GetUserActiveJobs'
+import GetOtherRider from './src/routes/rider/GetOtherRider'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -177,6 +178,7 @@ const main = async () => {
   await http.register(RiderRequestLoad)
   await http.register(GetRiderStats)
   await http.register(NewPaymentRider)
+  await http.register(GetOtherRider)
 
   // User tokens
   await http.register(UpdateUserExpoToken)

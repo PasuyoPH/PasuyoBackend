@@ -74,6 +74,12 @@ class DeliveryUtils {
         'Please provide an image of your item to deliver.'
       )
 
+    if (data.address?.pickup === data.address?.dropoff)
+      throw new HttpError(
+        HttpErrorCodes.JOB_ADDRESS_CANT_BE_SAME,
+        'The two addresses can\'t be the same. Please try again.'
+      )
+
     // check if address is valid
     const addresses = await this.server.utils.addresses.get([data.address?.pickup, data.address?.dropoff])
     if (addresses.length < 2)

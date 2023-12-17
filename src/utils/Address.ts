@@ -103,6 +103,15 @@ class AddressUtils {
    */
   public async create(data: NewAddressData, user: User) {
     if (
+      !data.text ||
+      data.text.length < 3
+    )
+      throw new HttpError(
+        HttpErrorCodes.ADDRESS_INVALID_TEXT,
+        'Please make sure you place a proper location for the address.'
+      )
+
+    if (
       !data?.template ||
       data?.template.length < 3
     )

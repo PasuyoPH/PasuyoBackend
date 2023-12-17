@@ -11,6 +11,13 @@ import { Rider } from '../types/database/Rider'
 class RiderUtils {
   constructor(public server: HttpServer) {}
 
+  public async getOtherRider(uid: string) {
+    return await this.server.db.table<Rider>(Tables.Riders)
+      .select('uid', 'fullName', 'phone', 'email')
+      .where('uid', uid)
+      .first()
+  }
+
   public async requestLoad(uid: string, file: Buffer) {
     const fileUrl = await this.server.utils.uploadFile(
       {

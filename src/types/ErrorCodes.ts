@@ -44,6 +44,7 @@ enum HttpErrorCodes {
   JOB_NO_ITEMS_FOR_ORDER        = 5012,
   JOB_MERCHANT_MISMATCH         = 5013,
   JOB_MERCHANT_CANT_LOCATE      = 5014,
+  JOB_ADDRESS_CANT_BE_SAME      = 5015,
 
   // Token related codes
   TOKEN_INVALID_ROLE = 6000,
@@ -56,6 +57,7 @@ enum HttpErrorCodes {
   ADDRESS_INVALID_NOTE              = 7004,
   ADDRESS_CANT_DELETE               = 7005,
   ADDRESS_USED_BY_JOB               = 7006,
+  ADDRESS_INVALID_TEXT              = 7007,
 
   // Distance
   DISTANCE_INVALID_POINTS = 8000,
