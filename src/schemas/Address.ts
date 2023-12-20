@@ -16,8 +16,8 @@ class AddressSchema extends Schema {
     this.table.text('template').notNullable()
     this.table.text('landmark')
 
-    this.table.text('contactPhone').notNullable()
-    this.table.text('contactName').notNullable()
+    this.table.text('contactPhone')//.notNullable()
+    this.table.text('contactName')//.notNullable()
     this.table.bigint('createdAt').notNullable()
 
     this.table.boolean('merchant').defaultTo(false)

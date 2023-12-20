@@ -35,7 +35,11 @@ class UsersUtils {
 
   // get recommended merchants based on user
   public async getRecommendedMerchants(uid: string) {
-    // fetch all user liked items
+    return await this.server.db.table<Merchant>(Tables.Merchant)
+      .select('*')
+      .where('open', true)
+
+    /*// fetch all user liked items
     const likedItems = await this.server.db.table<Likes>(Tables.Likes)
       .select('merchant')
       .where('user', uid)
@@ -77,7 +81,7 @@ class UsersUtils {
       return merchants.sort(
         (a, b) => scoreData[b.uid] - scoreData[a.uid]
       )
-    }
+    }*/
   }
 
   public async updateExpoToken(user: string, token: string) {
