@@ -89,6 +89,7 @@ class AdminUtils {
         .update(
           { credits: this.server.db.raw('credits + ?', [request.amount]) }
         )
+        .where('uid', request.user)
 
     // delete this request
     await this.server.db.table<LoadRequest>(Tables.LoadRequest)

@@ -21,6 +21,7 @@ class AddressSchema extends Schema {
     this.table.bigint('createdAt').notNullable()
 
     this.table.boolean('merchant').defaultTo(false)
+    this.table.boolean('useUserData').defaultTo(false)
   }
 }
 
