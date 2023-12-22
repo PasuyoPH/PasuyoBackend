@@ -45,6 +45,7 @@ enum HttpErrorCodes {
   JOB_MERCHANT_MISMATCH         = 5013,
   JOB_MERCHANT_CANT_LOCATE      = 5014,
   JOB_ADDRESS_CANT_BE_SAME      = 5015,
+  JOB_MERCHANT_CLOSED           = 5016,
 
   // Token related codes
   TOKEN_INVALID_ROLE = 6000,

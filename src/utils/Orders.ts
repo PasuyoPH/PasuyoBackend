@@ -4,6 +4,7 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import Address from '../types/database/Address'
 import { AddressUsed, AddressUsedType } from '../types/database/AddressUsed'
+import Merchant from '../types/database/Merchant'
 import MerchantItem from '../types/database/MerchantItem'
 import Order, { OrderStatus } from '../types/database/Order'
 import OrderData from '../types/http/OrderData'
@@ -54,6 +55,18 @@ class OrderUtils {
       throw new HttpError(
         HttpErrorCodes.JOB_NO_ITEMS_FOR_ORDER,
         'Oops! The items you ordered doesn\'t seem to exist. Please try again.'
+      )
+
+    // fetch merchant data to check if opened
+    const merchant = await this.server.db.table<Merchant>(Tables.Merchant)
+      .select('*')
+      .where('uid', lastMerchant)
+      .first()
+
+    if (!merchant || !merchant.open)
+      throw new HttpError(
+        HttpErrorCodes.JOB_MERCHANT_CLOSED,
+        'Can\'t proceed with transaction as this merchant is closed. Please try again when it\'s opened.'
       )
 
     // we can now calculate total price
