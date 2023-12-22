@@ -12,42 +12,50 @@ enum RestaurantFilterTypes {
 interface RestaurantFilter {
   name: string
   type: RestaurantFilterTypes
+  icon?: string
 }
 
-const filters = [
+const filters: RestaurantFilter[] = [
   {
     name: 'All',
-    type: RestaurantFilterTypes.ALL
+    type: RestaurantFilterTypes.ALL,
+    icon: 'concierge-bell'
   },
 
   {
     name: 'Pizza',
-    type: RestaurantFilterTypes.PIZZA
+    type: RestaurantFilterTypes.PIZZA,
+    icon: 'pizza-slice'
   },
 
   {
     name: 'Chicken',
-    type: RestaurantFilterTypes.CHICKEN
+    type: RestaurantFilterTypes.CHICKEN,
+    icon: 'drumstick-bite'
   },
 
   {
     name: 'Ice Cream',
-    type: RestaurantFilterTypes.BRR_COLD_BUSS_NIGGA
+    type: RestaurantFilterTypes.BRR_COLD_BUSS_NIGGA,
+    icon: 'ice-cream'
   },
 
   {
     name: 'Burger',
-    type: RestaurantFilterTypes.BURGER
+    type: RestaurantFilterTypes.BURGER,
+    icon: 'burger'
   },
 
   {
     name: 'Coffee',
-    type: RestaurantFilterTypes.COFFEE
+    type: RestaurantFilterTypes.COFFEE,
+    icon: 'coffee'
   },
 
   {
     name: 'Other',
-    type: RestaurantFilterTypes.OTHER
+    type: RestaurantFilterTypes.OTHER,
+    icon: 'bowl-food'
   },
 ]
 
