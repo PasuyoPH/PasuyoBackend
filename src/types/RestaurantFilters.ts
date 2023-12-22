@@ -1,6 +1,5 @@
 // TOOD: Move to db
 enum RestaurantFilterTypes {
-  ALL,
   PIZZA,
   CHICKEN,
   BRR_COLD_BUSS_NIGGA,
@@ -16,12 +15,6 @@ interface RestaurantFilter {
 }
 
 const filters: RestaurantFilter[] = [
-  {
-    name: 'All',
-    type: RestaurantFilterTypes.ALL,
-    icon: 'concierge-bell'
-  },
-
   {
     name: 'Pizza',
     type: RestaurantFilterTypes.PIZZA,
