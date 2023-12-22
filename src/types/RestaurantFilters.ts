@@ -5,6 +5,7 @@ enum RestaurantFilterTypes {
   CHICKEN,
   BRR_COLD_BUSS_NIGGA,
   BURGER,
+  COFFEE,
   OTHER,
 }
 
@@ -37,6 +38,11 @@ const filters = [
   {
     name: 'Burger',
     type: RestaurantFilterTypes.BURGER
+  },
+
+  {
+    name: 'Coffee',
+    type: RestaurantFilterTypes.COFFEE
   },
 
   {

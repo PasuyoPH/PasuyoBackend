@@ -108,6 +108,7 @@ import MerchantDisapproveOrder from './src/routes/merchant/MerchantDisapproveOrd
 import NewPaymentRider from './src/routes/payment/NewPaymentRider'
 import GetUserActiveJobs from './src/routes/user/GetUserActiveJobs'
 import GetOtherRider from './src/routes/rider/GetOtherRider'
+import GetMerchantsByType from './src/routes/merchant/GetMerchantsByType'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -206,6 +207,7 @@ const main = async () => {
   await http.register(GetMerchantData)
   await http.register(SearchItems)
   await http.register(GetMerchantAddresses)
+  await http.register(GetMerchantsByType)
 
   // PaOrder
   await http.register(CreateOrder)

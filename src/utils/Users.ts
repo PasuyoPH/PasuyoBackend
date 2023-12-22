@@ -35,9 +35,15 @@ class UsersUtils {
 
   // get recommended merchants based on user
   public async getRecommendedMerchants(uid: string) {
+    /*return await this.server.db.table<Merchant>(Tables.Merchant)
+      .select('*')
+      .where('open', true)*/
+
     return await this.server.db.table<Merchant>(Tables.Merchant)
       .select('*')
       .where('open', true)
+      .orderByRaw('random()')
+      .limit(3)
 
     /*// fetch all user liked items
     const likedItems = await this.server.db.table<Likes>(Tables.Likes)

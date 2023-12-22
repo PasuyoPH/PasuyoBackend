@@ -34,6 +34,15 @@ interface UpdateMerchantData {
 class MerchantUtils {
   constructor(public server: HttpServer) {}
 
+  public async getMerchantsByType(type: number) {
+    return this.server.db.table<Merchant>(Tables.Merchant)
+      .select('*')
+      .whereRaw(
+        '? = ANY(string_to_array(REPLACE(REPLACE(CAST(types AS VARCHAR), \'{\', \'\'), \'}\', \'\'), \',\')::int[])',
+        [type]
+      )
+  }
+
   public async approve(merchant: Merchant, uid: string) {
     await this.server.db.table<Order>(Tables.Orders)
       .update('pending', false)
