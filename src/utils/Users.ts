@@ -4,8 +4,7 @@ import HttpErrorCodes from '../types/ErrorCodes'
 import Tables from '../types/Tables'
 import { AddressUsed } from '../types/database/AddressUsed'
 import ExpoToken from '../types/database/ExpoToken'
-import Job2 from '../types/database/Job2'
-import Likes from '../types/database/Likes'
+import { JobTypes } from '../types/database/Job'
 import Merchant from '../types/database/Merchant'
 import Referral from '../types/database/Referral'
 import { Rider, RiderRanks, RiderStates } from '../types/database/Rider'
@@ -15,13 +14,26 @@ import AuthCreateData from '../types/http/AuthCreateData'
 class UsersUtils {
   constructor(public server: HttpServer) {}
 
-  public async getActiveJobs(uid: string) {
-    return (
-      await this.server.db.table<Job2>(Tables.Jobs2)
-        .select('*')
-        .where('finished', false)
-        .where('user', uid)
-    ).length
+  public async getActiveJobs(user: string) {
+    const orders = await this.server.db
+      .select(
+        `${Tables.Orders}.*`,
+        this.server.db.raw(
+          `COALESCE(${Tables.Jobs2}.finished, :default) AS finished`,
+          { default: false }
+        )
+      )
+      .from(Tables.Orders)
+      .where(`${Tables.Orders}.user`, user)
+      .where(`${Tables.Orders}.type`, JobTypes.ORDER)
+      .where(`${Tables.Orders}.draft`, false)
+      .leftJoin(Tables.Jobs2, `${Tables.Orders}.uid`, `${Tables.Jobs2}.uid`)
+      .where(
+        (builder) => builder.whereNull(`${Tables.Jobs2}.finished`)
+          .orWhere(`${Tables.Jobs2}.finished`, '!=', true)
+      )
+
+    return orders.length
   }
 
   public async getUserJobAddresses(uid: string) {
