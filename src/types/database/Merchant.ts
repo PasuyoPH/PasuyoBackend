@@ -17,6 +17,9 @@ interface Merchant {
   // state data
   open?: boolean
   hide?: boolean
+
+  openAt?: number
+  closedAt?: number
 }
 
 export default Merchant

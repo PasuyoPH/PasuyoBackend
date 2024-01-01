@@ -22,6 +22,9 @@ class MerchantSchema extends Schema {
     // state data
     this.table.boolean('open').defaultTo(false)
     this.table.boolean('hide').defaultTo(false)
+
+    this.table.tinyint('openAt').defaultTo(0)
+    this.table.tinyint('closedAt').defaultTo(0)
   }
 }
 

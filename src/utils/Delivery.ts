@@ -99,7 +99,7 @@ class DeliveryUtils {
         deliverTo: data.address.dropoff,
         distance: distance.distance,
         eta: distance.eta,
-        fee: distance.fee,
+        fee: Math.ceil(distance.fee),
         riderFee: distance.riderFee,
         draft: true,
         status: DeliveryStatus.DELIVERY_PROCESSED,

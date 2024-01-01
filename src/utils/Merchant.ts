@@ -29,6 +29,8 @@ interface UpdateMerchantData {
   types: ItemTypes[]
   accent: string
   open: boolean
+  openAt?: number
+  closedAt?: number
 }
 
 class MerchantUtils {
@@ -440,7 +442,6 @@ class MerchantUtils {
   public async  getMerchants() {
     return await this.server.db.table<Merchant>(Tables.Merchant)
       .select('*')
-      .where('open', true)
   }
 
   public async getMerchantsById(ids: string[]) {

@@ -61,9 +61,14 @@ class OrderUtils {
     const merchant = await this.server.db.table<Merchant>(Tables.Merchant)
       .select('*')
       .where('uid', lastMerchant)
-      .first()
+      .first(),
+      hour = (new Date()).getHours()
 
-    if (!merchant || !merchant.open)
+    if (
+      !merchant ||
+      !merchant.open ||
+      (hour < merchant.openAt || hour >= merchant.closedAt)
+    )
       throw new HttpError(
         HttpErrorCodes.JOB_MERCHANT_CLOSED,
         'Can\'t proceed with transaction as this merchant is closed. Please try again when it\'s opened.'
@@ -133,6 +138,8 @@ class OrderUtils {
     order.distance = calculatedDistance.distance
     order.total += (order.total * .15) + calculatedDistance.fee // add fee
     order.eta = calculatedDistance.eta + (highestEta * 60)
+
+    order.total = Math.ceil(order.total)
     
     // insert into database
     await this.server.db.table<Order>(Tables.Orders)
