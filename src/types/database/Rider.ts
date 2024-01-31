@@ -14,6 +14,12 @@ enum RiderRanks {
   RANK_BLACK_DIAMOND
 }
 
+enum RiderMode {
+  COMPLETE,
+  BAG,
+  UNIFORM
+}
+
 interface Rider extends User {
   verified?: boolean
   state: RiderStates
@@ -21,10 +27,12 @@ interface Rider extends User {
   xp: number // unused value for now
   optInLocation: boolean
   id?: string
+  mode?: RiderMode
 }
 
 export {
   RiderStates,
   RiderRanks,
-  Rider
+  Rider,
+  RiderMode
 }

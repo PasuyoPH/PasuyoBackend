@@ -109,6 +109,7 @@ import NewPaymentRider from './src/routes/payment/NewPaymentRider'
 import GetUserActiveJobs from './src/routes/user/GetUserActiveJobs'
 import GetOtherRider from './src/routes/rider/GetOtherRider'
 import GetMerchantsByType from './src/routes/merchant/GetMerchantsByType'
+import AdminSetRiderMode from './src/routes/admin/AdminSetRiderMode'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -194,6 +195,7 @@ const main = async () => {
   await http.register(AdminApproveLoad)
   await http.register(GetAdminToken)
   await http.register(AdminNewMerchant)
+  await http.register(AdminSetRiderMode)
 
   // merchant
   await http.register(GetMerchantItems)

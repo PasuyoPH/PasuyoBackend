@@ -1,5 +1,5 @@
 import Tables from '../types/Tables'
-import { RiderRanks, RiderStates } from '../types/database/Rider'
+import { RiderMode, RiderRanks, RiderStates } from '../types/database/Rider'
 import UserSchema from './User'
 
 class RiderSchema extends UserSchema {
@@ -14,6 +14,7 @@ class RiderSchema extends UserSchema {
     this.table.double('xp').defaultTo(0.00)
     this.table.boolean('optInLocation').defaultTo(false)
     this.table.text('id')
+    this.table.tinyint('mode').defaultTo(RiderMode.COMPLETE)
   }
 }
 

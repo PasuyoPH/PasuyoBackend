@@ -8,14 +8,20 @@ import Delivery from '../types/database/Delivery'
 import { JobTypes } from '../types/database/Job'
 import LoadRequest from '../types/database/LoadRequest'
 import Merchant from '../types/database/Merchant'
-import { Rider } from '../types/database/Rider'
+import { Rider, RiderMode } from '../types/database/Rider'
 import Transaction, { TransactionStatus } from '../types/database/Transaction'
 import User from '../types/database/User'
 import { ProtocolSendTypes } from '../types/ws/Protocol'
 
 class AdminUtils {
   constructor(public server: HttpServer) {}
-  
+ 
+  public async setRiderMode(uid: string, mode: RiderMode) {
+    await this.server.db.table<Rider>(Tables.Riders)
+      .update('mode', mode ?? RiderMode.COMPLETE)
+      .where('uid', uid)
+  }
+
   public async approveGCash(uid: string) {
     // mark transaction as paid
     await this.server.db.table<Transaction>(Tables.Transactions)
