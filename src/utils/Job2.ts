@@ -9,7 +9,7 @@ import Job2 from '../types/database/Job2'
 import Merchant from '../types/database/Merchant'
 import MerchantItem from '../types/database/MerchantItem'
 import Order, { OrderStatus } from '../types/database/Order'
-import { Rider, RiderStates } from '../types/database/Rider'
+import { Rider, RiderMode, RiderStates } from '../types/database/Rider'
 import User from '../types/database/User'
 import * as ProtocolTypes from '../types/protocol/types'
 
@@ -352,6 +352,16 @@ class Job2Utils {
 
           // update rider credits
           rider.credits -= Math.round(fees.pasuyo + order.pf)
+
+          switch (rider.mode) {
+            case RiderMode.BAG: {
+              rider.credits -= rider.credits * .1
+            } break
+
+            case RiderMode.UNIFORM: {
+              rider.credits -= rider.credits * .2
+            } break
+          }
       } break
 
       case JobTypes.DELIVERY: { // handle delivery
@@ -400,6 +410,16 @@ class Job2Utils {
 
         // update rider credits
         rider.credits -= Math.round(fees.pasuyo)
+
+        switch (rider.mode) {
+          case RiderMode.BAG: {
+            rider.credits -= rider.credits * .1
+          } break
+
+          case RiderMode.UNIFORM: {
+            rider.credits -= rider.credits * .2
+          } break
+        }
       } break
 
       default: {
