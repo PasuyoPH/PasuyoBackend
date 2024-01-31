@@ -194,7 +194,8 @@ class AdminUtils {
         'credits',
         'fullName',
         'phone',
-        'email'
+        'email',
+        'mode'
       )
   }
 }
