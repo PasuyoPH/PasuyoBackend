@@ -350,16 +350,19 @@ class Job2Utils {
             }
           )
 
+          const riderFeeToSubtract = Math.round(fees.pasuyo + order.pf),
+            totalLeft = order.total - riderFeeToSubtract
+
           // update rider credits
-          rider.credits -= Math.round(fees.pasuyo + order.pf)
+          rider.credits -= riderFeeToSubtract
 
           switch (rider.mode) {
             case RiderMode.BAG: {
-              rider.credits -= rider.credits * .1
+              rider.credits -= totalLeft * .1
             } break
 
             case RiderMode.UNIFORM: {
-              rider.credits -= rider.credits * .2
+              rider.credits -= totalLeft * .2
             } break
           }
       } break
@@ -413,11 +416,11 @@ class Job2Utils {
 
         switch (rider.mode) {
           case RiderMode.BAG: {
-            rider.credits -= rider.credits * .1
+            rider.credits -= Math.round(fees.rider) * .1
           } break
 
           case RiderMode.UNIFORM: {
-            rider.credits -= rider.credits * .2
+            rider.credits -= Math.round(fees.rider) * .2
           } break
         }
       } break
