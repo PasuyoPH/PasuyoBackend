@@ -148,13 +148,13 @@ class Utils {
 
     try {
       const fileUrl = await this.uploadFile(
-      {
-        storage: 'profiles',
-        file
-      }
-    )
+        {
+          storage: 'profiles',
+          file
+        }
+      )
 
-    return fileUrl
+      return fileUrl
     }
     catch(err){ console.log(err) }
   }

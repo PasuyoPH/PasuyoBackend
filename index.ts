@@ -110,6 +110,7 @@ import GetUserActiveJobs from './src/routes/user/GetUserActiveJobs'
 import GetOtherRider from './src/routes/rider/GetOtherRider'
 import GetMerchantsByType from './src/routes/merchant/GetMerchantsByType'
 import AdminSetRiderMode from './src/routes/admin/AdminSetRiderMode'
+import NewPaymentRiderAlt from './src/routes/payment/NewPaymentRiderAlt'
  
 const main = async () => {
   const http = new HttpServer(config)
@@ -180,6 +181,7 @@ const main = async () => {
   await http.register(RiderRequestLoad)
   await http.register(GetRiderStats)
   await http.register(NewPaymentRider)
+  await http.register(NewPaymentRiderAlt)
   await http.register(GetOtherRider)
 
   // User tokens
